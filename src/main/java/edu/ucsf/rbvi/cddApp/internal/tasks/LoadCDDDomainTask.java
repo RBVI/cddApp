@@ -35,7 +35,8 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 	}
 
 	@Override
-	public void run(TaskMonitor arg0) throws Exception {
+	public void run(TaskMonitor monitor) throws Exception {
+		monitor.setTitle("Load CDD Domains");
 		String queries = null, colName = loadColumn.getSelectedValue();
 		HashMap<String, Long> idTable = new HashMap<String, Long>();
 		for (long cyId: table.getPrimaryKey().getValues(Long.class)) {
@@ -45,6 +46,8 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 				queries = queries + "&queries=" + proteinId;
 			idTable.put(proteinId, cyId);
 		}
+		
+	/*	monitor.setStatusMessage("Connecting to NCBI CDD...");
 		URL url = new URL("http://www.ncbi.nlm.nih.gov/Structure/bwrpsb/bwrpsb.cgi");
 		HttpURLConnection con = (HttpURLConnection) url.openConnection();
 		
@@ -73,6 +76,108 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 	//	System.out.println(status);
 	//	System.out.println(cdsid);
 		
+		monitor.setStatusMessage("Waiting for response from CDD database...");
+		while (status != 0) {
+			Thread.sleep(5000);
+			url = new URL("http://www.ncbi.nlm.nih.gov/Structure/bwrpsb/bwrpsb.cgi");
+			con = (HttpURLConnection) url.openConnection();
+			con.setDoOutput(true);
+			con.setDoInput(true);
+			con.setRequestMethod("POST");
+			wr = new DataOutputStream(con.getOutputStream());
+			wr.writeBytes("cdsid=" + cdsid);
+			wr.flush();
+			wr.close();
+			in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+			while ((line = in.readLine()) != null) {
+				String[] record = line.split("\\s");
+				try {
+				if (record[0].equals("#status"))
+					status = Integer.parseInt(record[1]);
+				} catch (NumberFormatException e) {}
+				if (status == 0) break;
+			//	System.out.println(line);
+			}
+			if (status != 0) in.close();
+		//	System.out.println(status);
+		//	System.out.println(cdsid);
+		} */
+		
+		BufferedReader in = retrieveFromDatabase(monitor, new URL("http://www.ncbi.nlm.nih.gov/Structure/bwrpsb/bwrpsb.cgi"), queries + "&db=cdd&smode=auto&useid1=true&filter=true&&evalue=0.01&tdata=hits&dmode=rep&qdefl=false&ccdefl=false");
+		monitor.setStatusMessage("Downloading domain information...");
+		if (table.getColumn("CDD-Accession") == null)
+			table.createListColumn("CDD-Accession", String.class, false);
+		HashMap<String, List<String>> accessionMap = new HashMap<String, List<String>>();
+		String line;
+		while ((line = in.readLine()) != null) {
+			try {
+				String[] record = line.split("\t");
+				String	proteinId = record[0].split(" ")[2].split("\\(")[0],
+						accession = record[7];
+			//	System.out.println(proteinId);
+			//	System.out.println(accession);
+				if (! accessionMap.containsKey(proteinId)) 
+					accessionMap.put(proteinId, new ArrayList<String>());
+				accessionMap.get(proteinId).add(accession);
+			} catch (ArrayIndexOutOfBoundsException e) {}
+		}
+		in.close();
+		for (String s: accessionMap.keySet()) {
+			table.getRow(idTable.get(s)).set("CDD-Accession", accessionMap.get(s));
+		}
+		
+		in = retrieveFromDatabase(monitor, new URL("http://www.ncbi.nlm.nih.gov/Structure/bwrpsb/bwrpsb.cgi"), queries + "&db=cdd&smode=auto&useid1=true&filter=true&&evalue=0.01&tdata=feats&dmode=rep&qdefl=false&ccdefl=false");
+		monitor.setStatusMessage("Downloading functional site information...");
+		if (table.getColumn("Functional-Feature") == null)
+			table.createListColumn("Functional-Feature", String.class, false);
+		accessionMap = new HashMap<String, List<String>>();
+		while ((line = in.readLine()) != null) {
+			try {
+				String[] record = line.split("\t");
+				String	proteinId = record[0].split(" ")[2].split("\\(")[0],
+						accession = record[2];
+			//	System.out.println(proteinId);
+			//	System.out.println(accession);
+				if (! accessionMap.containsKey(proteinId)) 
+					accessionMap.put(proteinId, new ArrayList<String>());
+				accessionMap.get(proteinId).add(accession);
+			} catch (ArrayIndexOutOfBoundsException e) {}
+		}
+		in.close();
+		for (String s: accessionMap.keySet())
+			table.getRow(idTable.get(s)).set("Functional-Feature", accessionMap.get(s));
+	}
+	
+	private BufferedReader retrieveFromDatabase(TaskMonitor monitor, URL url, String postParams) throws Exception {
+		monitor.setStatusMessage("Connecting to NCBI CDD...");
+	//	URL url = new URL("http://www.ncbi.nlm.nih.gov/Structure/bwrpsb/bwrpsb.cgi");
+		HttpURLConnection con = (HttpURLConnection) url.openConnection();
+		
+		con.setDoOutput(true);
+		con.setDoInput(true);
+		con.setRequestMethod("POST");
+
+		DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+		wr.writeBytes(postParams);
+		wr.flush();
+		wr.close();
+		
+		int status = -1;
+		String cdsid = null;
+		BufferedReader in = new BufferedReader(
+		        new InputStreamReader(con.getInputStream()));
+		String line;
+		while ((line = in.readLine()) != null) {
+			String[] record = line.split("\\s");
+			if (record[0].equals("#status")) status = Integer.parseInt(record[1]);
+			if (record[0].equals("#cdsid")) cdsid = record[1];
+		//	System.out.println(line);
+		}
+		in.close();
+	//	System.out.println(status);
+	//	System.out.println(cdsid);
+		
+		monitor.setStatusMessage("Waiting for response from CDD database...");
 		while (status != 0) {
 			Thread.sleep(5000);
 			url = new URL("http://www.ncbi.nlm.nih.gov/Structure/bwrpsb/bwrpsb.cgi");
@@ -98,25 +203,6 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 		//	System.out.println(status);
 		//	System.out.println(cdsid);
 		}
-		
-		if (table.getColumn("CDD-Accession") == null)
-			table.createListColumn("CDD-Accession", String.class, false);
-		HashMap<String, List<String>> accessionMap = new HashMap<String, List<String>>(); 
-		while ((line = in.readLine()) != null) {
-			try {
-				String[] record = line.split("\t");
-				String	proteinId = record[0].split(" ")[2].split("\\(")[0],
-						accession = record[7];
-			//	System.out.println(proteinId);
-			//	System.out.println(accession);
-				if (! accessionMap.containsKey(proteinId)) 
-					accessionMap.put(proteinId, new ArrayList<String>());
-				accessionMap.get(proteinId).add(accession);
-			} catch (ArrayIndexOutOfBoundsException e) {}
-		}
-		in.close();
-		for (String s: accessionMap.keySet()) {
-			table.getRow(idTable.get(s)).set("CDD-Accession", accessionMap.get(s));
-		}
+		return in;
 	}
 }
