@@ -16,7 +16,9 @@ import java.util.Set;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
+import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.NetworkViewTaskFactory;
+import org.cytoscape.task.TableTaskFactory;
 import org.cytoscape.task.read.LoadVizmapFileTaskFactory;
 import org.cytoscape.view.vizmap.VisualMappingManager;
 import org.cytoscape.view.vizmap.VisualStyle;
@@ -25,6 +27,8 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainTaskFactory;
 
 public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = LoggerFactory
@@ -44,5 +48,17 @@ public class CyActivator extends AbstractCyActivator {
 			haveGUI = false;
 			// Issue error and return
 		}
+		
+		LoadCDDDomainTaskFactory loadCDDDomain = new LoadCDDDomainTaskFactory();
+		Properties settingsProps = new Properties();
+		settingsProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
+		settingsProps.setProperty(TITLE, "Load CDD Domains");
+		settingsProps.setProperty(COMMAND, "loadCDDDomains");
+		settingsProps.setProperty(COMMAND_NAMESPACE, "cddApp");
+		settingsProps.setProperty(IN_MENU_BAR, "true");
+		// settingsProps.setProperty(ENABLE_FOR, "network");
+		settingsProps.setProperty(MENU_GRAVITY, "1.0");
+		registerService(bc, loadCDDDomain, NetworkTaskFactory.class, settingsProps);
+
 	}
 }
