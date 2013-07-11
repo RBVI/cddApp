@@ -23,6 +23,7 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 	@Tunable(description="Choose column to load domains from")
 	public ListSingleSelection<String> loadColumn;
 	private CyTable table;
+	private List<Long> entry = null;
 	
 	public LoadCDDDomainTask(CyTable table) {
 		super(table);
@@ -34,12 +35,21 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 		this.table = table;
 	}
 
+	public void setEntry(List<Long> entry) {this.entry = entry;}
+	
 	@Override
 	public void run(TaskMonitor monitor) throws Exception {
 		monitor.setTitle("Load CDD Domains");
+		monitor.setStatusMessage("Load CDD Domains");
 		String queries = null, colName = loadColumn.getSelectedValue();
 		HashMap<String, Long> idTable = new HashMap<String, Long>();
-		for (long cyId: table.getPrimaryKey().getValues(Long.class)) {
+		List<Long> queryRange;
+		if (entry == null)
+			queryRange = table.getPrimaryKey().getValues(Long.class);
+		else {
+			queryRange = entry;
+		}
+		for (long cyId: queryRange) {
 			String proteinId = table.getRow(cyId).get(colName, String.class);
 			if (queries == null) queries = "queries=" + proteinId;
 			else

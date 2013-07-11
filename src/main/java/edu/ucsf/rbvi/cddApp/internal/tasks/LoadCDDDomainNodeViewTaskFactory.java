@@ -1,5 +1,8 @@
 package edu.ucsf.rbvi.cddApp.internal.tasks;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.cytoscape.model.CyNode;
 import org.cytoscape.task.AbstractNodeViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
@@ -10,8 +13,11 @@ public class LoadCDDDomainNodeViewTaskFactory extends
 		AbstractNodeViewTaskFactory {
 
 	public TaskIterator createTaskIterator(View<CyNode> arg0, CyNetworkView arg1) {
-		// TODO Auto-generated method stub
-		return null;
+		LoadCDDDomainTask task = new LoadCDDDomainTask(arg1.getModel().getDefaultNodeTable());
+		List<Long> suids = new ArrayList<Long>();
+		suids.add(arg0.getModel().getSUID());
+		task.setEntry(suids);
+		return new TaskIterator(task);
 	}
 
 }
