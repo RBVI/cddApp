@@ -15,6 +15,7 @@ import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.task.AbstractTableTask;
 import org.cytoscape.work.TaskMonitor;
+import org.cytoscape.work.TaskMonitor.Level;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListSingleSelection;
 
@@ -58,7 +59,6 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 		}
 		
 		BufferedReader in = retrieveFromDatabase(monitor, new URL("http://www.ncbi.nlm.nih.gov/Structure/bwrpsb/bwrpsb.cgi"), queries + "&db=cdd&smode=auto&useid1=true&filter=true&&evalue=0.01&tdata=hits&dmode=rep&qdefl=false&ccdefl=false");
-		monitor.setTitle("Downloading domain information...");
 		monitor.setStatusMessage("Downloading domain information...");
 		if (table.getColumn("CDD-Accession") == null)
 			table.createListColumn("CDD-Accession", String.class, false);
@@ -106,7 +106,6 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 		}
 		
 		in = retrieveFromDatabase(monitor, new URL("http://www.ncbi.nlm.nih.gov/Structure/bwrpsb/bwrpsb.cgi"), queries + "&db=cdd&smode=auto&useid1=true&filter=true&&evalue=0.01&tdata=feats&dmode=rep&qdefl=false&ccdefl=false");
-		monitor.setTitle("Downloading functional site information...");
 		monitor.setStatusMessage("Downloading functional site information...");
 		if (table.getColumn("CDD-Feature") == null)
 			table.createListColumn("CDD-Feature", String.class, false);
@@ -143,12 +142,10 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 			table.getRow(idTable.get(s)).set("CDD-Feature-Type", featureTypeMap.get(s));
 			table.getRow(idTable.get(s)).set("CDD-Feature-Site", featureSiteMap.get(s));
 		}
-		monitor.setTitle("Finished.");
 		monitor.setStatusMessage("Finished.");
 	}
 	
 	private BufferedReader retrieveFromDatabase(TaskMonitor monitor, URL url, String postParams) throws Exception {
-		monitor.setTitle("Connecting to NCBI CDD...");
 		monitor.setStatusMessage("Connecting to NCBI CDD...");
 	//	URL url = new URL("http://www.ncbi.nlm.nih.gov/Structure/bwrpsb/bwrpsb.cgi");
 		HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -177,7 +174,6 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 	//	System.out.println(status);
 	//	System.out.println(cdsid);
 		
-		monitor.setTitle("Waiting for response from CDD database...");
 		monitor.setStatusMessage("Waiting for response from CDD database...");
 		while (status != 0) {
 			Thread.sleep(5000);
