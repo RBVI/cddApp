@@ -27,6 +27,7 @@ import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNetworkViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNodeViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainTaskFactory;
 
@@ -68,7 +69,18 @@ public class CyActivator extends AbstractCyActivator {
 		nodeViewProps.setProperty(COMMAND_NAMESPACE, "cddApp");
 		nodeViewProps.setProperty(IN_MENU_BAR, "true");
 		// settingsProps.setProperty(ENABLE_FOR, "network");
-		nodeViewProps.setProperty(MENU_GRAVITY, "1.0");
+		nodeViewProps.setProperty(MENU_GRAVITY, "2.0");
 		registerService(bc, loadCDDDomainNodeView, NodeViewTaskFactory.class, nodeViewProps);
+		
+		LoadCDDDomainNetworkViewTaskFactory loadCDDDomainNetworkView = new LoadCDDDomainNetworkViewTaskFactory();
+		Properties networkViewProps = new Properties();
+		networkViewProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
+		networkViewProps.setProperty(TITLE, "Load CDD Domains for selected Node(s)");
+		networkViewProps.setProperty(COMMAND, "loadCDDDomains4selectedNodes");
+		networkViewProps.setProperty(COMMAND_NAMESPACE, "cddApp");
+		networkViewProps.setProperty(IN_MENU_BAR, "true");
+		// settingsProps.setProperty(ENABLE_FOR, "network");
+		networkViewProps.setProperty(MENU_GRAVITY, "1.0");
+		registerService(bc, loadCDDDomainNetworkView, NetworkViewTaskFactory.class, networkViewProps);
 	}
 }
