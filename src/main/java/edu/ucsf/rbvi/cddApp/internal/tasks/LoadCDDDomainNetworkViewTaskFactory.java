@@ -15,7 +15,9 @@ public class LoadCDDDomainNetworkViewTaskFactory extends
 		AbstractNetworkViewTaskFactory {
 	
 	public boolean isReady(CyNetworkView networkView) {
-		return ! CyTableUtil.getNodesInState(networkView.getModel(), CyNetwork.SELECTED, true).isEmpty();
+		if (super.isReady(networkView))
+			return ! CyTableUtil.getNodesInState(networkView.getModel(), CyNetwork.SELECTED, true).isEmpty();
+		else return false;
 	}
 	
 	public TaskIterator createTaskIterator(CyNetworkView arg0) {

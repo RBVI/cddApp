@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNetworkViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNodeViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainTaskFactory;
+import edu.ucsf.rbvi.cddApp.internal.tasks.HighlightDomainTaskFactory;
 
 public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = LoggerFactory
@@ -82,5 +83,16 @@ public class CyActivator extends AbstractCyActivator {
 		// settingsProps.setProperty(ENABLE_FOR, "network");
 		networkViewProps.setProperty(MENU_GRAVITY, "1.0");
 		registerService(bc, loadCDDDomainNetworkView, NetworkViewTaskFactory.class, networkViewProps);
+		
+		HighlightDomainTaskFactory openStructure = new HighlightDomainTaskFactory(bc);
+		Properties openStrucProps = new Properties();
+		openStrucProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
+		openStrucProps.setProperty(TITLE, "Highlight Domain");
+		openStrucProps.setProperty(COMMAND, "highlightDomain");
+		openStrucProps.setProperty(COMMAND_NAMESPACE, "cddApp");
+		openStrucProps.setProperty(IN_MENU_BAR, "true");
+		// settingsProps.setProperty(ENABLE_FOR, "network");
+		openStrucProps.setProperty(MENU_GRAVITY, "3.0");
+		registerService(bc, openStructure, NetworkViewTaskFactory.class, openStrucProps);
 	}
 }
