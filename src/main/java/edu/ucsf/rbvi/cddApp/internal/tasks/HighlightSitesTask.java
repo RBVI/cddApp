@@ -52,6 +52,7 @@ public class HighlightSitesTask extends AbstractTask {
 		if (openTaskFactory != null || singleNode != null) {
 		//	insertTasksAfterCurrentTask(openTaskFactory.createTaskIterator(netView));
 			List<CyNode> selectedNodes;
+			String openFiles = "";
 			if (singleNode == null)
 				selectedNodes = CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true);
 			else {
@@ -69,7 +70,8 @@ public class HighlightSitesTask extends AbstractTask {
 					tunables.put(Messages.SV_COMMANDTUNABLE, "select #" + counter + ":.A");
 					insertTasksAfterCurrentTask(sendCommandFactory.createTaskIterator());
 				} */
-				new SendCommandThread().sendChimeraCommand(context, "open " + table.getRow(n.getSUID()).get("pdbFileName", String.class));
+			//	new SendCommandThread().sendChimeraCommand(context, "open " + table.getRow(n.getSUID()).get("pdbFileName", String.class));
+				openFiles = openFiles + " " + table.getRow(n.getSUID()).get("pdbFileName", String.class);
 				List<String> featureType = table.getRow(n.getSUID()).getList("CDD-Feature-Type", String.class);
 				List<String> features = table.getRow(n.getSUID()).getList("CDD-Feature-Site", String.class);
 				commands = commands + " #" + HighlightDomainTask.counter + ":";
@@ -82,6 +84,7 @@ public class HighlightSitesTask extends AbstractTask {
 				commands = commands.substring(0, commands.length()-1);
 				HighlightDomainTask.counter++;
 			}
+			new SendCommandThread().sendChimeraCommand(context, "open" + openFiles);
 			new SendCommandThread().sendChimeraCommand(context, commands);
 		}
 	}
