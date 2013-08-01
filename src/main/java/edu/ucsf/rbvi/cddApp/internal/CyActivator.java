@@ -27,6 +27,7 @@ import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucsf.rbvi.cddApp.internal.tasks.HighlightSitesTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNetworkViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNodeViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainTaskFactory;
@@ -94,5 +95,16 @@ public class CyActivator extends AbstractCyActivator {
 		// settingsProps.setProperty(ENABLE_FOR, "network");
 		openStrucProps.setProperty(MENU_GRAVITY, "3.0");
 		registerService(bc, openStructure, NetworkViewTaskFactory.class, openStrucProps);
+		
+		HighlightSitesTaskFactory highlightSites = new HighlightSitesTaskFactory(bc);
+		Properties highlightSitesProps = new Properties();
+		highlightSitesProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
+		highlightSitesProps.setProperty(TITLE, "Highlight Site");
+		highlightSitesProps.setProperty(COMMAND, "highlightSite");
+		highlightSitesProps.setProperty(COMMAND_NAMESPACE, "cddApp");
+		highlightSitesProps.setProperty(IN_MENU_BAR, "true");
+		// settingsProps.setProperty(ENABLE_FOR, "network");
+		highlightSitesProps.setProperty(MENU_GRAVITY, "4.0");
+		registerService(bc, highlightSites, NetworkViewTaskFactory.class, highlightSitesProps);
 	}
 }

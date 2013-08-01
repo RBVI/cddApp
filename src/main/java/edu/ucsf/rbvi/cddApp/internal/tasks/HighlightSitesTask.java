@@ -27,14 +27,14 @@ import edu.ucsf.rbvi.cddApp.internal.util.SendCommandThread;
  * @author Nadezhda Doncheva
  *
  */
-public class HighlightDomainTask extends AbstractTask {
+public class HighlightSitesTask extends AbstractTask {
 
 	private CyNetworkView netView;
 	private BundleContext context;
-	static int counter = 0;
+//	private static int counter = 0;
 	private String commands = "select ";
 	
-	public HighlightDomainTask(BundleContext bc, CyNetworkView aNetView) {
+	public HighlightSitesTask(BundleContext bc, CyNetworkView aNetView) {
 		context = bc;
 		netView = aNetView;
 	}
@@ -58,17 +58,17 @@ public class HighlightDomainTask extends AbstractTask {
 					insertTasksAfterCurrentTask(sendCommandFactory.createTaskIterator());
 				} */
 				new SendCommandThread().sendChimeraCommand(context, "open " + table.getRow(n.getSUID()).get("pdbFileName", String.class));
-				List<String> hitType = table.getRow(n.getSUID()).getList("CDD-Hit-Type", String.class);
-				List<String> cddBegin = table.getRow(n.getSUID()).getList("CDD-From", String.class);
-				List<String> cddEnd = table.getRow(n.getSUID()).getList("CDD-To", String.class);
-				commands = commands + " #" + counter + ":";
-				for (int i = 0; i < hitType.size(); i++) {
-					if (hitType.get(i).equals("specific")) {
-						commands = commands + cddBegin.get(i) + "-" + cddEnd.get(i) + ",";
+				List<String> featureType = table.getRow(n.getSUID()).getList("CDD-Feature-Type", String.class);
+				List<String> features = table.getRow(n.getSUID()).getList("CDD-Feature-Site", String.class);
+				commands = commands + " #" + HighlightDomainTask.counter + ":";
+				for (int i = 0; i < featureType.size(); i++) {
+					if (featureType.get(i).equals("specific")) {
+						for (String s: features.get(i).split(","))
+							commands = commands + s.substring(1,s.length()) + ",";
 					}
 				}
 				commands = commands.substring(0, commands.length()-1);
-				counter++;
+				HighlightDomainTask.counter++;
 			}
 			new SendCommandThread().sendChimeraCommand(context, commands);
 		}
