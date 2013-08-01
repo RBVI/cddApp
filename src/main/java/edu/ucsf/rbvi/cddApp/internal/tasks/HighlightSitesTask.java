@@ -1,8 +1,7 @@
 package edu.ucsf.rbvi.cddApp.internal.tasks;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
@@ -10,11 +9,10 @@ import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.view.model.View;
 import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ProvidesTitle;
-import org.cytoscape.work.TaskFactory;
 import org.cytoscape.work.TaskMonitor;
-import org.cytoscape.work.TunableSetter;
 import org.osgi.framework.BundleContext;
 
 import edu.ucsf.rbvi.cddApp.internal.util.CyUtils;
@@ -33,19 +31,33 @@ public class HighlightSitesTask extends AbstractTask {
 	private BundleContext context;
 //	private static int counter = 0;
 	private String commands = "select ";
+	private CyNode singleNode = null;
 	
 	public HighlightSitesTask(BundleContext bc, CyNetworkView aNetView) {
 		context = bc;
 		netView = aNetView;
 	}
 
+	public HighlightSitesTask(BundleContext bc, View<CyNode> v, CyNetworkView aNetView) {
+		context = bc;
+		singleNode = v.getModel();
+		netView = aNetView;
+	}
+	
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
 		NetworkViewTaskFactory openTaskFactory = (NetworkViewTaskFactory) CyUtils.getService(
 				context, NetworkViewTaskFactory.class, Messages.SV_OPENCOMMANDTASK);
-		if (openTaskFactory != null) {
+		System.out.println(singleNode);
+		if (openTaskFactory != null || singleNode != null) {
 		//	insertTasksAfterCurrentTask(openTaskFactory.createTaskIterator(netView));
-			List<CyNode> selectedNodes = CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true);
+			List<CyNode> selectedNodes;
+			if (singleNode == null)
+				selectedNodes = CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true);
+			else {
+				selectedNodes = new ArrayList<CyNode>();
+				selectedNodes.add(singleNode);
+			}
 			CyTable table = netView.getModel().getDefaultNodeTable();
 			for (CyNode n: selectedNodes) {
 			/*	TaskFactory sendCommandFactory = (TaskFactory) CyUtils.getService(context,
