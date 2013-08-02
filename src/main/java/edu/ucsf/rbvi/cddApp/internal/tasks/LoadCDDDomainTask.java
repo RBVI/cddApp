@@ -42,9 +42,12 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 	public void run(TaskMonitor monitor) throws Exception {
 		monitor.setTitle("Load CDD Domains");
 		monitor.setStatusMessage("Load CDD Domains");
-		String queries = null, colName = loadColumn.getSelectedValue();
+		String queries = null, pdbQueries = null, colName = loadColumn.getSelectedValue();
 		HashMap<String, Long> idTable = new HashMap<String, Long>();
+		HashMap<String, List<String>> pdbIdTable;
+		HashMap<String, String> revPdbIdTable = new HashMap<String, String>();
 		List<Long> queryRange;
+		List<String> pdbId;
 		if (entry == null)
 			queryRange = table.getPrimaryKey().getValues(Long.class);
 		else {
@@ -52,31 +55,61 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 		}
 		for (long cyId: queryRange) {
 			String proteinId = table.getRow(cyId).get(colName, String.class);
-			if (queries == null) queries = "queries=" + proteinId;
-			else
-				queries = queries + "&queries=" + proteinId;
-			idTable.put(proteinId, cyId);
+			if (pdbQueries == null) pdbQueries = "structureId=" + proteinId;
+			else pdbQueries = pdbQueries + "," + proteinId;
+		}
+		pdbId = validPDBId(monitor, new URL("http://www.rcsb.org/pdb/rest/idStatus?" + pdbQueries));
+		String cleanedPdbQueries = null;
+		for (String s: pdbId) {
+			if (cleanedPdbQueries == null) cleanedPdbQueries = "structureId=" + s;
+			else cleanedPdbQueries = cleanedPdbQueries + "," + s;
+		}
+		pdbIdTable = retrieveFromPDB(monitor, new URL("http://www.rcsb.org/pdb/rest/describeMol?" + cleanedPdbQueries));
+		for (String s: pdbIdTable.keySet()) {
+			System.out.println(s);
+			for (String s1: pdbIdTable.get(s)) System.out.println(s1);
+		}
+		for (String s: pdbId) System.out.println(s);
+		
+		for (long cyId: queryRange) {
+			String proteinIdParent = table.getRow(cyId).get(colName, String.class);
+			List<String> proteinIds = pdbIdTable.get(proteinIdParent);
+			if (proteinIds == null) {
+				proteinIds = new ArrayList<String>();
+				proteinIds.add(proteinIdParent);
+			}
+			idTable.put(proteinIdParent, cyId);
+			for (String proteinId: proteinIds) {
+				if (queries == null) queries = "queries=" + proteinId;
+				else
+					queries = queries + "&queries=" + proteinId;
+				revPdbIdTable.put(proteinId, proteinIdParent);
+			}
 		}
 		
 		BufferedReader in = retrieveFromDatabase(monitor, new URL("http://www.ncbi.nlm.nih.gov/Structure/bwrpsb/bwrpsb.cgi"), queries + "&db=cdd&smode=auto&useid1=true&filter=true&&evalue=0.01&tdata=hits&dmode=rep&qdefl=false&ccdefl=false");
 		monitor.setStatusMessage("Downloading domain information...");
 		if (table.getColumn("CDD-Accession") == null)
 			table.createListColumn("CDD-Accession", String.class, false);
+		if (table.getColumn("PDB-Chain") == null)
+			table.createListColumn("PDB-Chain", String.class, false);;
 		if (table.getColumn("CDD-Hit-Type") == null)
 			table.createListColumn("CDD-Hit-Type", String.class, false);
 		if (table.getColumn("CDD-From") == null)
 			table.createListColumn("CDD-From", String.class, false);
 		if (table.getColumn("CDD-To") == null)
 			table.createListColumn("CDD-To", String.class, false);
-		HashMap<String, List<String>> accessionMap = new HashMap<String, List<String>>();
-		HashMap<String, List<String>> hitTypeMap = new HashMap<String, List<String>>();
+		HashMap<String, List<String>>	accessionMap = new HashMap<String, List<String>>(),
+										pdbChainMap = new HashMap<String, List<String>>(),
+										hitTypeMap = new HashMap<String, List<String>>();
 		HashMap<String, List<Long>>	fromMap = new HashMap<String, List<Long>>(),
 									toMap = new HashMap<String, List<Long>>();
 		String line;
 		while ((line = in.readLine()) != null) {
 			try {
 				String[] record = line.split("\t");
-				String	proteinId = record[0].split(" ")[2].split("\\(")[0],
+				String	proteinIdChain = record[0].split(" ")[2].split("\\(")[0],
+						proteinId = revPdbIdTable.get(proteinIdChain),
 						hitType = record[1],
 						accession = record[7];
 				long	from = Integer.parseInt(record[3]),
@@ -86,6 +119,9 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 				if (! accessionMap.containsKey(proteinId)) 
 					accessionMap.put(proteinId, new ArrayList<String>());
 				accessionMap.get(proteinId).add(accession);
+				if (! pdbChainMap.containsKey(proteinId))
+					pdbChainMap.put(proteinId, new ArrayList<String>());
+				pdbChainMap.get(proteinId).add(proteinIdChain);
 				if (!hitTypeMap.containsKey(proteinId))
 					hitTypeMap.put(proteinId, new ArrayList<String>());
 				hitTypeMap.get(proteinId).add(hitType);
@@ -100,6 +136,7 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 		in.close();
 		for (String s: accessionMap.keySet()) {
 			table.getRow(idTable.get(s)).set("CDD-Accession", accessionMap.get(s));
+			table.getRow(idTable.get(s)).set("PDB-Chain", pdbChainMap.get(s));
 			table.getRow(idTable.get(s)).set("CDD-Hit-Type", hitTypeMap.get(s));
 			table.getRow(idTable.get(s)).set("CDD-From", fromMap.get(s));
 			table.getRow(idTable.get(s)).set("CDD-To", toMap.get(s));
@@ -119,7 +156,7 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 		while ((line = in.readLine()) != null) {
 			try {
 				String[] record = line.split("\t");
-				String	proteinId = record[0].split(" ")[2].split("\\(")[0],
+				String	proteinId = revPdbIdTable.get(record[0].split(" ")[2].split("\\(")[0]),
 						featureType = record[1],
 						accession = record[2],
 						featureSite = record[3];
@@ -201,5 +238,63 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 		//	System.out.println(cdsid);
 		}
 		return in;
+	}
+	
+	private HashMap<String, List<String>> retrieveFromPDB(TaskMonitor monitor, URL url) throws Exception {
+		monitor.setStatusMessage("Downloading chains from PDB...");
+	//	URL url = new URL("http://www.ncbi.nlm.nih.gov/Structure/bwrpsb/bwrpsb.cgi");
+		HashMap<String, List<String>> pdbIdMap = new HashMap<String, List<String>>();
+		Pattern r = Pattern.compile("<chain id=\"([A-Z])\""),
+				s = Pattern.compile("<structureId id=\"(.*?)\"");
+		String pdbFile = null;
+		HttpURLConnection con = (HttpURLConnection) url.openConnection();
+		
+		con.setDoOutput(true);
+		con.setDoInput(true);
+		
+		BufferedReader in = new BufferedReader(
+		        new InputStreamReader(con.getInputStream()));
+		String line;
+		while ((line = in.readLine()) != null) {
+			Matcher m = r.matcher(line), m1 = s.matcher(line);
+			String chain = null;
+			if (m1.find()) pdbFile = m1.group(1);
+			if (m.find()) chain = m.group(1);
+			if (pdbFile != null && chain != null) {
+				List<String> chains = pdbIdMap.get(pdbFile);
+				if (chains == null) {
+					chains = new ArrayList<String>();
+					pdbIdMap.put(pdbFile, chains);
+				}
+				chains.add(pdbFile + chain);
+			}
+		//	System.out.println(line);
+		}
+		in.close();
+		return pdbIdMap;
+	}
+	
+	private List<String> validPDBId(TaskMonitor monitor, URL url) throws Exception {
+		monitor.setStatusMessage("Downloading valid PDB IDs...");
+	//	URL url = new URL("http://www.ncbi.nlm.nih.gov/Structure/bwrpsb/bwrpsb.cgi");
+		List<String> pdbIdList = new ArrayList<String>();
+		Pattern r = Pattern.compile("structureId=\"(.*?)\" status=\"(.*?)\"");
+		HttpURLConnection con = (HttpURLConnection) url.openConnection();
+		
+		con.setDoOutput(true);
+		con.setDoInput(true);
+		
+		BufferedReader in = new BufferedReader(
+		        new InputStreamReader(con.getInputStream()));
+		String line;
+		while ((line = in.readLine()) != null) {
+			Matcher m = r.matcher(line);
+			if (m.find()) {
+				String id = m.group(1), status = m.group(2);
+				if (status.equals("CURRENT") || status.equals("OBSOLETE")) pdbIdList.add(id);
+			}
+		}
+		in.close();
+		return pdbIdList;
 	}
 }
