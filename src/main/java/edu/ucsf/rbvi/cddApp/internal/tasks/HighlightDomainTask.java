@@ -73,15 +73,14 @@ public class HighlightDomainTask extends AbstractTask {
 			//	new SendCommandThread().sendChimeraCommand(context, "open " + table.getRow(n.getSUID()).get("pdbFileName", String.class));
 				openFiles = openFiles + " " + table.getRow(n.getSUID()).get("pdbFileName", String.class);
 				List<String> hitType = table.getRow(n.getSUID()).getList("CDD-Hit-Type", String.class);
-				List<String> cddBegin = table.getRow(n.getSUID()).getList("CDD-From", String.class);
-				List<String> cddEnd = table.getRow(n.getSUID()).getList("CDD-To", String.class);
-				commands = commands + " #" + counter + ":";
+				List<String> pdbChain = table.getRow(n.getSUID()).getList("PDB-Chain", String.class);
+				List<Long> cddBegin = table.getRow(n.getSUID()).getList("CDD-From", Long.class);
+				List<Long> cddEnd = table.getRow(n.getSUID()).getList("CDD-To", Long.class);
 				for (int i = 0; i < hitType.size(); i++) {
 					if (hitType.get(i).equals("specific")) {
-						commands = commands + cddBegin.get(i) + "-" + cddEnd.get(i) + ",";
+						commands = commands + " #" + counter + ":" + cddBegin.get(i) + "-" + cddEnd.get(i) + "." + pdbChain.get(i).charAt(pdbChain.get(i).length()-1);
 					}
 				}
-				commands = commands.substring(0, commands.length()-1);
 				counter++;
 			}
 			new SendCommandThread().sendChimeraCommand(context, "open" + openFiles);

@@ -72,16 +72,15 @@ public class HighlightSitesTask extends AbstractTask {
 				} */
 			//	new SendCommandThread().sendChimeraCommand(context, "open " + table.getRow(n.getSUID()).get("pdbFileName", String.class));
 				openFiles = openFiles + " " + table.getRow(n.getSUID()).get("pdbFileName", String.class);
+				List<String> pdbChain = table.getRow(n.getSUID()).getList("PDB-Chain-Features", String.class);
 				List<String> featureType = table.getRow(n.getSUID()).getList("CDD-Feature-Type", String.class);
 				List<String> features = table.getRow(n.getSUID()).getList("CDD-Feature-Site", String.class);
-				commands = commands + " #" + HighlightDomainTask.counter + ":";
 				for (int i = 0; i < featureType.size(); i++) {
 					if (featureType.get(i).equals("specific")) {
 						for (String s: features.get(i).split(","))
-							commands = commands + s.substring(1,s.length()) + ",";
+							commands = commands + " #" + HighlightDomainTask.counter + ":" + s.substring(1,s.length()) + "." + pdbChain.get(i).charAt(pdbChain.get(i).length()-1);
 					}
 				}
-				commands = commands.substring(0, commands.length()-1);
 				HighlightDomainTask.counter++;
 			}
 			new SendCommandThread().sendChimeraCommand(context, "open" + openFiles);

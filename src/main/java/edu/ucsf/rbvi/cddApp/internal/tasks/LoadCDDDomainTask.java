@@ -96,9 +96,9 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 		if (table.getColumn("CDD-Hit-Type") == null)
 			table.createListColumn("CDD-Hit-Type", String.class, false);
 		if (table.getColumn("CDD-From") == null)
-			table.createListColumn("CDD-From", String.class, false);
+			table.createListColumn("CDD-From", Long.class, false);
 		if (table.getColumn("CDD-To") == null)
-			table.createListColumn("CDD-To", String.class, false);
+			table.createListColumn("CDD-To", Long.class, false);
 		HashMap<String, List<String>>	accessionMap = new HashMap<String, List<String>>(),
 										pdbChainMap = new HashMap<String, List<String>>(),
 										hitTypeMap = new HashMap<String, List<String>>();
@@ -146,17 +146,21 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 		monitor.setStatusMessage("Downloading functional site information...");
 		if (table.getColumn("CDD-Feature") == null)
 			table.createListColumn("CDD-Feature", String.class, false);
+		if (table.getColumn("PDB-Chain-Features") == null)
+			table.createListColumn("PDB-Chain-Features", String.class, false);
 		if (table.getColumn("CDD-Feature-Type") == null)
 			table.createListColumn("CDD-Feature-Type", String.class, false);
 		if (table.getColumn("CDD-Feature-Site") == null)
 			table.createListColumn("CDD-Feature-Site", String.class, false);
 		accessionMap = new HashMap<String, List<String>>();
-		HashMap<String, List<String>>	featureTypeMap = new HashMap<String, List<String>>(),
+		HashMap<String, List<String>>	featuresPdbChain = new HashMap<String, List<String>>(),
+										featureTypeMap = new HashMap<String, List<String>>(),
 										featureSiteMap = new HashMap<String, List<String>>();
 		while ((line = in.readLine()) != null) {
 			try {
 				String[] record = line.split("\t");
-				String	proteinId = revPdbIdTable.get(record[0].split(" ")[2].split("\\(")[0]),
+				String	proteinIdChain = record[0].split(" ")[2].split("\\(")[0],
+						proteinId = revPdbIdTable.get(proteinIdChain),
 						featureType = record[1],
 						accession = record[2],
 						featureSite = record[3];
@@ -165,6 +169,9 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 				if (! accessionMap.containsKey(proteinId)) 
 					accessionMap.put(proteinId, new ArrayList<String>());
 				accessionMap.get(proteinId).add(accession);
+				if (!featuresPdbChain.containsKey(proteinId))
+					featuresPdbChain.put(proteinId, new ArrayList<String>());
+				featuresPdbChain.get(proteinId).add(proteinIdChain);
 				if (! featureTypeMap.containsKey(proteinId))
 					featureTypeMap.put(proteinId, new ArrayList<String>());
 				featureTypeMap.get(proteinId).add(featureType);
@@ -176,6 +183,7 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 		in.close();
 		for (String s: accessionMap.keySet()) {
 			table.getRow(idTable.get(s)).set("CDD-Feature", accessionMap.get(s));
+			table.getRow(idTable.get(s)).set("PDB-Chain-Features", featuresPdbChain.get(s));
 			table.getRow(idTable.get(s)).set("CDD-Feature-Type", featureTypeMap.get(s));
 			table.getRow(idTable.get(s)).set("CDD-Feature-Site", featureSiteMap.get(s));
 		}
