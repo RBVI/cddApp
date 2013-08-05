@@ -1,7 +1,10 @@
 package edu.ucsf.rbvi.cddApp.internal.tasks;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
@@ -11,8 +14,11 @@ import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.ProvidesTitle;
+import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskMonitor;
+import org.cytoscape.work.TaskObserver;
 import org.osgi.framework.BundleContext;
 
 import edu.ucsf.rbvi.cddApp.internal.util.CyUtils;
@@ -22,14 +28,13 @@ import edu.ucsf.rbvi.cddApp.internal.util.SendCommandThread;
 /**
  * Open structure from Chimera
  * 
- * @author Nadezhda Doncheva
+ * @author Allan Wu
  *
  */
-public class HighlightSitesTask extends AbstractTask {
+public class HighlightSitesTask extends AbstractTask implements TaskObserver {
 
 	private CyNetworkView netView;
 	private BundleContext context;
-//	private static int counter = 0;
 	private String commands = "select ";
 	private CyNode singleNode = null;
 	
@@ -51,7 +56,9 @@ public class HighlightSitesTask extends AbstractTask {
 		System.out.println(singleNode);
 		if (openTaskFactory != null || singleNode != null) {
 		//	insertTasksAfterCurrentTask(openTaskFactory.createTaskIterator(netView));
-			List<CyNode> selectedNodes;
+			TaskManager taskManager = (TaskManager) CyUtils.getService(context, TaskManager.class);
+			taskManager.execute(openTaskFactory.createTaskIterator(netView), this);
+		/*	List<CyNode> selectedNodes;
 			String openFiles = "";
 			if (singleNode == null)
 				selectedNodes = CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true);
@@ -61,16 +68,6 @@ public class HighlightSitesTask extends AbstractTask {
 			}
 			CyTable table = netView.getModel().getDefaultNodeTable();
 			for (CyNode n: selectedNodes) {
-			/*	TaskFactory sendCommandFactory = (TaskFactory) CyUtils.getService(context,
-						TaskFactory.class, Messages.SV_SENDCOMMANDTASK);
-				if (sendCommandFactory != null && sendCommandFactory.isReady()) {
-					TunableSetter tunableSetter = (TunableSetter) CyUtils.getService(context,
-							TunableSetter.class);
-					Map<String, Object> tunables = new HashMap<String, Object>();
-					tunables.put(Messages.SV_COMMANDTUNABLE, "select #" + counter + ":.A");
-					insertTasksAfterCurrentTask(sendCommandFactory.createTaskIterator());
-				} */
-			//	new SendCommandThread().sendChimeraCommand(context, "open " + table.getRow(n.getSUID()).get("pdbFileName", String.class));
 				openFiles = openFiles + " " + table.getRow(n.getSUID()).get("pdbFileName", String.class);
 				List<String> pdbChain = table.getRow(n.getSUID()).getList("PDB-Chain-Features", String.class);
 				List<String> featureType = table.getRow(n.getSUID()).getList("CDD-Feature-Type", String.class);
@@ -84,7 +81,7 @@ public class HighlightSitesTask extends AbstractTask {
 				HighlightDomainTask.counter++;
 			}
 			new SendCommandThread().sendChimeraCommand(context, "open" + openFiles);
-			new SendCommandThread().sendChimeraCommand(context, commands);
+			new SendCommandThread().sendChimeraCommand(context, commands); */
 		}
 	}
 
@@ -93,4 +90,40 @@ public class HighlightSitesTask extends AbstractTask {
 		return "Open structure";
 	}
 
+	public void allFinished() {
+		List<String> models = new SendCommandThread().sendChimeraCommand(context, "list models");
+		Pattern p = Pattern.compile("model id #(\\d+) type Molecule name (....)");
+		HashMap<String, String> modelName = new HashMap<String, String>();
+		for (String s: models) {
+			Matcher m = p.matcher(s);
+			if (m.find())
+				modelName.put(m.group(2), m.group(1));
+		}
+		List<CyNode> selectedNodes;
+		if (singleNode == null)
+			selectedNodes = CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true);
+		else {
+			selectedNodes = new ArrayList<CyNode>();
+			selectedNodes.add(singleNode);
+		}
+		CyTable table = netView.getModel().getDefaultNodeTable();
+		for (CyNode n: selectedNodes) {
+			List<String> pdbChain = table.getRow(n.getSUID()).getList("PDB-Chain-Features", String.class);
+			List<String> featureType = table.getRow(n.getSUID()).getList("CDD-Feature-Type", String.class);
+			List<String> features = table.getRow(n.getSUID()).getList("CDD-Feature-Site", String.class);
+			for (int i = 0; i < featureType.size(); i++) {
+				if (featureType.get(i).equals("specific")) {
+					for (String s: features.get(i).split(","))
+						commands = commands + " #" + modelName.get(table.getRow(n.getSUID()).get("pdbFileName", String.class)) + ":" + s.substring(1,s.length()) + "." + pdbChain.get(i).charAt(pdbChain.get(i).length()-1);
+				}
+			}
+		}
+	//	new SendCommandThread().sendChimeraCommand(context, "open" + openFiles);
+		new SendCommandThread().sendChimeraCommand(context, commands);
+	}
+
+	public void taskFinished(ObservableTask arg0) {
+		// TODO Auto-generated method stub
+		
+	}
 }
