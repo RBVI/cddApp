@@ -11,6 +11,7 @@ import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.CyTableUtil;
 import org.cytoscape.task.NetworkViewTaskFactory;
+import org.cytoscape.task.NodeViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.work.AbstractTask;
@@ -37,25 +38,37 @@ public class HighlightDomainTask extends AbstractTask implements TaskObserver {
 	private BundleContext context;
 	private String commands = "select ";
 	private CyNode singleNode = null;
+	private boolean networkViewIndicator;
+	private View<CyNode> v;
 	
 	public HighlightDomainTask(BundleContext bc, CyNetworkView aNetView) {
 		context = bc;
 		netView = aNetView;
+		networkViewIndicator = true;
 	}
 	
 	public HighlightDomainTask(BundleContext bc, View<CyNode> v, CyNetworkView aNetView) {
 		context = bc;
 		singleNode = v.getModel();
+		this.v = v;
 		netView = aNetView;
+		networkViewIndicator = false;
 	}
 	
 	@Override
 	public void run(TaskMonitor taskMonitor) throws Exception {
-		NetworkViewTaskFactory openTaskFactory = (NetworkViewTaskFactory) CyUtils.getService(
-				context, NetworkViewTaskFactory.class, Messages.SV_OPENCOMMANDTASK);
-		if (openTaskFactory != null || singleNode != null) {
-			TaskManager taskManager = (TaskManager) CyUtils.getService(context, TaskManager.class);
-			taskManager.execute(openTaskFactory.createTaskIterator(netView), this);
+		TaskManager taskManager = (TaskManager) CyUtils.getService(context, TaskManager.class);
+		if (networkViewIndicator) {
+			NetworkViewTaskFactory openNetworkViewTaskFactory = (NetworkViewTaskFactory) CyUtils.getService(
+					context, NetworkViewTaskFactory.class, Messages.SV_OPENCOMMANDTASK);
+			if (openNetworkViewTaskFactory != null)
+				taskManager.execute(openNetworkViewTaskFactory.createTaskIterator(netView), this);
+		}
+		else {
+			NodeViewTaskFactory openNodeViewTaskFactory = (NodeViewTaskFactory) CyUtils.getService(
+					context, NodeViewTaskFactory.class, Messages.SV_OPENCOMMANDTASK);
+			if (openNodeViewTaskFactory != null && singleNode != null)
+				taskManager.execute(openNodeViewTaskFactory.createTaskIterator(v, netView), this);
 		}
 	}
 

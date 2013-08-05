@@ -91,7 +91,7 @@ public class CyActivator extends AbstractCyActivator {
 		openStrucProps.setProperty(IN_MENU_BAR, "true");
 		openStrucProps.setProperty(MENU_GRAVITY, "3.0");
 		registerService(bc, highlightDomain, NetworkViewTaskFactory.class, openStrucProps);
-	//	registerService(bc, highlightDomain, NodeViewTaskFactory.class, openStrucProps);
+		registerService(bc, highlightDomain, NodeViewTaskFactory.class, openStrucProps);
 		
 		HighlightSitesTaskFactory highlightSites = new HighlightSitesTaskFactory(bc);
 		Properties highlightSitesProps = new Properties();
@@ -102,6 +102,6 @@ public class CyActivator extends AbstractCyActivator {
 		highlightSitesProps.setProperty(IN_MENU_BAR, "true");
 		highlightSitesProps.setProperty(MENU_GRAVITY, "4.0");
 		registerService(bc, highlightSites, NetworkViewTaskFactory.class, highlightSitesProps);
-	//	registerService(bc, highlightSites, NodeViewTaskFactory.class, highlightSitesProps);
+		registerService(bc, highlightSites, NodeViewTaskFactory.class, highlightSitesProps);
 	}
 }
