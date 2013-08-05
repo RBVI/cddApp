@@ -54,34 +54,8 @@ public class HighlightDomainTask extends AbstractTask implements TaskObserver {
 		NetworkViewTaskFactory openTaskFactory = (NetworkViewTaskFactory) CyUtils.getService(
 				context, NetworkViewTaskFactory.class, Messages.SV_OPENCOMMANDTASK);
 		if (openTaskFactory != null || singleNode != null) {
-		//	insertTasksAfterCurrentTask(openTaskFactory.createTaskIterator(netView));
 			TaskManager taskManager = (TaskManager) CyUtils.getService(context, TaskManager.class);
 			taskManager.execute(openTaskFactory.createTaskIterator(netView), this);
-		/*	List<CyNode> selectedNodes;
-			String openFiles = "";
-			if (singleNode == null)
-				selectedNodes = CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true);
-			else {
-				selectedNodes = new ArrayList<CyNode>();
-				selectedNodes.add(singleNode);
-			}
-			
-			CyTable table = netView.getModel().getDefaultNodeTable();
-			for (CyNode n: selectedNodes) {
-				openFiles = openFiles + " " + table.getRow(n.getSUID()).get("pdbFileName", String.class);
-				List<String> hitType = table.getRow(n.getSUID()).getList("CDD-Hit-Type", String.class);
-				List<String> pdbChain = table.getRow(n.getSUID()).getList("PDB-Chain", String.class);
-				List<Long> cddBegin = table.getRow(n.getSUID()).getList("CDD-From", Long.class);
-				List<Long> cddEnd = table.getRow(n.getSUID()).getList("CDD-To", Long.class);
-				for (int i = 0; i < hitType.size(); i++) {
-					if (hitType.get(i).equals("specific")) {
-						commands = commands + " #" + counter + ":" + cddBegin.get(i) + "-" + cddEnd.get(i) + "." + pdbChain.get(i).charAt(pdbChain.get(i).length()-1);
-					}
-				}
-				counter++;
-			}
-			new SendCommandThread().sendChimeraCommand(context, "open" + openFiles);
-			new SendCommandThread().sendChimeraCommand(context, commands); */
 		}
 	}
 
@@ -107,7 +81,9 @@ public class HighlightDomainTask extends AbstractTask implements TaskObserver {
 			selectedNodes.add(singleNode);
 		}
 		
-		CyTable table = netView.getModel().getDefaultNodeTable();
+		CyTable table = netView.getModel().getDefaultNodeTable(),
+				netTable = netView.getModel().getDefaultNetworkTable();
+		String pdbFileName = netTable.getRow(netView.getModel().getSUID()).get("pdbFileName", String.class);
 		for (CyNode n: selectedNodes) {
 			List<String> hitType = table.getRow(n.getSUID()).getList("CDD-Hit-Type", String.class);
 			List<String> pdbChain = table.getRow(n.getSUID()).getList("PDB-Chain", String.class);
@@ -115,13 +91,12 @@ public class HighlightDomainTask extends AbstractTask implements TaskObserver {
 			List<Long> cddEnd = table.getRow(n.getSUID()).getList("CDD-To", Long.class);
 			for (int i = 0; i < hitType.size(); i++) {
 				if (hitType.get(i).equals("specific")) {
-					commands = commands + " #" + modelName.get(table.getRow(n.getSUID()).get("pdbFileName", String.class)) + ":" + cddBegin.get(i) + "-" + cddEnd.get(i) + "." + pdbChain.get(i).charAt(pdbChain.get(i).length()-1);
+					commands = commands + " #" + modelName.get(table.getRow(n.getSUID()).get(pdbFileName, String.class)) + ":" + cddBegin.get(i) + "-" + cddEnd.get(i) + "." + pdbChain.get(i).charAt(pdbChain.get(i).length()-1);
 				}
 			}
 		}
 	/*	new SendCommandThread().sendChimeraCommand(context, "open" + openFiles); */
 		new SendCommandThread().sendChimeraCommand(context, commands);
-		System.out.println("All tasks finished.");
 	}
 
 	public void taskFinished(ObservableTask arg0) {

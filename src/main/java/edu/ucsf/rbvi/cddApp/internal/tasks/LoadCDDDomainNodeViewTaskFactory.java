@@ -13,7 +13,7 @@ public class LoadCDDDomainNodeViewTaskFactory extends
 		AbstractNodeViewTaskFactory {
 
 	public TaskIterator createTaskIterator(View<CyNode> arg0, CyNetworkView arg1) {
-		LoadCDDDomainTask task = new LoadCDDDomainTask(arg1.getModel().getDefaultNodeTable());
+		LoadCDDDomainTask task = new LoadCDDDomainTask(arg1.getModel());
 		List<Long> suids = new ArrayList<Long>();
 		suids.add(arg0.getModel().getSUID());
 		task.setEntry(suids);

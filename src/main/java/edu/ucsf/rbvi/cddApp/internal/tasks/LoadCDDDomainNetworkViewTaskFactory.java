@@ -21,11 +21,11 @@ public class LoadCDDDomainNetworkViewTaskFactory extends
 	}
 	
 	public TaskIterator createTaskIterator(CyNetworkView arg0) {
-		CyTable table = arg0.getModel().getDefaultNodeTable();
+		CyNetwork network = arg0.getModel();
 		List<CyNode> selectedNodes = CyTableUtil.getNodesInState(arg0.getModel(), CyNetwork.SELECTED, true);
 		List<Long> selected = new ArrayList<Long>();
 		for (CyNode n: selectedNodes) selected.add(n.getSUID());
-		LoadCDDDomainTask task = new LoadCDDDomainTask(table);
+		LoadCDDDomainTask task = new LoadCDDDomainTask(network);
 		task.setEntry(selected);
 		return new TaskIterator(task);
 	}

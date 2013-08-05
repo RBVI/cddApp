@@ -12,28 +12,32 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.cytoscape.model.CyColumn;
+import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
+import org.cytoscape.task.AbstractNetworkTask;
 import org.cytoscape.task.AbstractTableTask;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.TaskMonitor.Level;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListSingleSelection;
 
-public class LoadCDDDomainTask extends AbstractTableTask {
+public class LoadCDDDomainTask extends AbstractNetworkTask {
 
 	@Tunable(description="Choose column to load domains from")
 	public ListSingleSelection<String> loadColumn;
 	private CyTable table;
+	private CyNetwork network;
 	private List<Long> entry = null;
 	
-	public LoadCDDDomainTask(CyTable table) {
-		super(table);
+	public LoadCDDDomainTask(CyNetwork network) {
+		super(network);
+		this.table = network.getDefaultNodeTable();
 		ArrayList<String> columns = new ArrayList<String>();
 		for (CyColumn c: table.getColumns()) {
 			columns.add(c.getName());
 		}
 		loadColumn = new ListSingleSelection<String>(columns);
-		this.table = table;
+		this.network = network;
 	}
 
 	public void setEntry(List<Long> entry) {this.entry = entry;}
@@ -65,11 +69,11 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 			else cleanedPdbQueries = cleanedPdbQueries + "," + s;
 		}
 		pdbIdTable = retrieveFromPDB(monitor, new URL("http://www.rcsb.org/pdb/rest/describeMol?" + cleanedPdbQueries));
-		for (String s: pdbIdTable.keySet()) {
+	/*	for (String s: pdbIdTable.keySet()) {
 			System.out.println(s);
 			for (String s1: pdbIdTable.get(s)) System.out.println(s1);
 		}
-		for (String s: pdbId) System.out.println(s);
+		for (String s: pdbId) System.out.println(s); */
 		
 		for (long cyId: queryRange) {
 			String proteinIdParent = table.getRow(cyId).get(colName, String.class);
@@ -187,6 +191,10 @@ public class LoadCDDDomainTask extends AbstractTableTask {
 			table.getRow(idTable.get(s)).set("CDD-Feature-Type", featureTypeMap.get(s));
 			table.getRow(idTable.get(s)).set("CDD-Feature-Site", featureSiteMap.get(s));
 		}
+		CyTable netTable = network.getDefaultNetworkTable();
+		if (netTable.getColumn("pdbFileName") == null)
+			netTable.createColumn("pdbFileName", String.class, false);
+		netTable.getRow(network.getSUID()).set("pdbFileName", colName);
 		monitor.setStatusMessage("Finished.");
 	}
 	

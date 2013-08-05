@@ -29,7 +29,7 @@ public class HighlightDomainTaskFactory extends AbstractTaskFactory implements N
 	public boolean isReady(CyNetworkView netView) {
 		NetworkViewTaskFactory openTaskFactory = (NetworkViewTaskFactory) CyUtils.getService(context,
 				NetworkViewTaskFactory.class, Messages.SV_OPENCOMMANDTASK);
-		if (openTaskFactory != null && netView != null) {
+		if (openTaskFactory != null && netView != null && netView.getModel().getDefaultNetworkTable().getColumn("pdbFileName") != null) {
 			return openTaskFactory.isReady(netView);
 		}
 		return false;

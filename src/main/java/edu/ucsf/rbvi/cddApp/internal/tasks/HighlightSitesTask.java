@@ -55,33 +55,8 @@ public class HighlightSitesTask extends AbstractTask implements TaskObserver {
 				context, NetworkViewTaskFactory.class, Messages.SV_OPENCOMMANDTASK);
 		System.out.println(singleNode);
 		if (openTaskFactory != null || singleNode != null) {
-		//	insertTasksAfterCurrentTask(openTaskFactory.createTaskIterator(netView));
 			TaskManager taskManager = (TaskManager) CyUtils.getService(context, TaskManager.class);
 			taskManager.execute(openTaskFactory.createTaskIterator(netView), this);
-		/*	List<CyNode> selectedNodes;
-			String openFiles = "";
-			if (singleNode == null)
-				selectedNodes = CyTableUtil.getNodesInState(netView.getModel(), CyNetwork.SELECTED, true);
-			else {
-				selectedNodes = new ArrayList<CyNode>();
-				selectedNodes.add(singleNode);
-			}
-			CyTable table = netView.getModel().getDefaultNodeTable();
-			for (CyNode n: selectedNodes) {
-				openFiles = openFiles + " " + table.getRow(n.getSUID()).get("pdbFileName", String.class);
-				List<String> pdbChain = table.getRow(n.getSUID()).getList("PDB-Chain-Features", String.class);
-				List<String> featureType = table.getRow(n.getSUID()).getList("CDD-Feature-Type", String.class);
-				List<String> features = table.getRow(n.getSUID()).getList("CDD-Feature-Site", String.class);
-				for (int i = 0; i < featureType.size(); i++) {
-					if (featureType.get(i).equals("specific")) {
-						for (String s: features.get(i).split(","))
-							commands = commands + " #" + HighlightDomainTask.counter + ":" + s.substring(1,s.length()) + "." + pdbChain.get(i).charAt(pdbChain.get(i).length()-1);
-					}
-				}
-				HighlightDomainTask.counter++;
-			}
-			new SendCommandThread().sendChimeraCommand(context, "open" + openFiles);
-			new SendCommandThread().sendChimeraCommand(context, commands); */
 		}
 	}
 
@@ -106,7 +81,9 @@ public class HighlightSitesTask extends AbstractTask implements TaskObserver {
 			selectedNodes = new ArrayList<CyNode>();
 			selectedNodes.add(singleNode);
 		}
-		CyTable table = netView.getModel().getDefaultNodeTable();
+		CyTable table = netView.getModel().getDefaultNodeTable(),
+				netTable = netView.getModel().getDefaultNetworkTable();
+		String pdbFileName = netTable.getRow(netView.getModel().getSUID()).get("pdbFileName", String.class);
 		for (CyNode n: selectedNodes) {
 			List<String> pdbChain = table.getRow(n.getSUID()).getList("PDB-Chain-Features", String.class);
 			List<String> featureType = table.getRow(n.getSUID()).getList("CDD-Feature-Type", String.class);
@@ -114,7 +91,7 @@ public class HighlightSitesTask extends AbstractTask implements TaskObserver {
 			for (int i = 0; i < featureType.size(); i++) {
 				if (featureType.get(i).equals("specific")) {
 					for (String s: features.get(i).split(","))
-						commands = commands + " #" + modelName.get(table.getRow(n.getSUID()).get("pdbFileName", String.class)) + ":" + s.substring(1,s.length()) + "." + pdbChain.get(i).charAt(pdbChain.get(i).length()-1);
+						commands = commands + " #" + modelName.get(table.getRow(n.getSUID()).get(pdbFileName, String.class)) + ":" + s.substring(1,s.length()) + "." + pdbChain.get(i).charAt(pdbChain.get(i).length()-1);
 				}
 			}
 		}
