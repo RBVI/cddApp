@@ -32,6 +32,7 @@ import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNetworkViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNodeViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.HighlightDomainTaskFactory;
+import edu.ucsf.rbvi.cddApp.internal.tasks.StructurePanelTaskFactory;
 
 public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = LoggerFactory
@@ -103,5 +104,15 @@ public class CyActivator extends AbstractCyActivator {
 		highlightSitesProps.setProperty(MENU_GRAVITY, "4.0");
 		registerService(bc, highlightSites, NetworkViewTaskFactory.class, highlightSitesProps);
 		registerService(bc, highlightSites, NodeViewTaskFactory.class, highlightSitesProps);
+		
+		StructurePanelTaskFactory structurePanel = new StructurePanelTaskFactory(bc);
+		Properties structurePanelProps = new Properties();
+		structurePanelProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
+		structurePanelProps.setProperty(TITLE, "Open Structure Panel");
+		structurePanelProps.setProperty(COMMAND, "structurePanel");
+		structurePanelProps.setProperty(COMMAND_NAMESPACE, "cddApp");
+		structurePanelProps.setProperty(IN_MENU_BAR, "true");
+		structurePanelProps.setProperty(MENU_GRAVITY, "5.0");
+		registerService(bc, structurePanel, TaskFactory.class, structurePanelProps);
 	}
 }

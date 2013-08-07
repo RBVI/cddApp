@@ -15,9 +15,7 @@ import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.task.AbstractNetworkTask;
-import org.cytoscape.task.AbstractTableTask;
 import org.cytoscape.work.TaskMonitor;
-import org.cytoscape.work.TaskMonitor.Level;
 import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListSingleSelection;
 
@@ -47,8 +45,10 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 		monitor.setTitle("Load CDD Domains");
 		monitor.setStatusMessage("Load CDD Domains");
 		String queries = null, pdbQueries = null, colName = loadColumn.getSelectedValue();
-		HashMap<String, Long> idTable = new HashMap<String, Long>();
+	//	HashMap<String, Long> idTable = new HashMap<String, Long>();
 		HashMap<String, List<String>> pdbIdTable;
+		HashMap<Long, List<String>> pdbIdsTable = new HashMap<Long, List<String>>();
+		HashMap<String, List<Long>> pdbId2Nodes = new HashMap<String, List<Long>>();
 		HashMap<String, String> revPdbIdTable = new HashMap<String, String>();
 		List<Long> queryRange;
 		List<String> pdbId;
@@ -57,8 +57,36 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 		else {
 			queryRange = entry;
 		}
-		for (long cyId: queryRange) {
-			String proteinId = table.getRow(cyId).get(colName, String.class);
+		if (table.getColumn(colName).getListElementType() == null && table.getColumn(colName).getType() == String.class) {
+			for (long cyId: queryRange) {
+				List<String> l = new ArrayList<String>();
+				for (String s: table.getRow(cyId).get(colName, String.class).split(",")) {
+					l.add(s);
+					List<Long> temp = pdbId2Nodes.get(s);
+					if (temp == null) {
+						temp = new ArrayList<Long>();
+						pdbId2Nodes.put(s, temp);
+					}
+					temp.add(cyId);
+				}
+				pdbIdsTable.put(cyId, l);
+			}
+		}
+		else if (table.getColumn(colName).getListElementType() == String.class) {
+			for (long cyId: queryRange) {
+				pdbIdsTable.put(cyId, table.getRow(cyId).getList(colName, String.class));
+				for (String s: table.getRow(cyId).getList(colName, String.class)) {
+					List<Long> temp = pdbId2Nodes.get(s);
+					if (temp == null) {
+						temp = new ArrayList<Long>();
+						pdbId2Nodes.put(s, temp);
+					}
+					temp.add(cyId);
+				}
+			}
+		}
+		for (String proteinId: pdbId2Nodes.keySet()) {
+		//	String proteinId = table.getRow(cyId).get(colName, String.class);
 			if (pdbQueries == null) pdbQueries = "structureId=" + proteinId;
 			else pdbQueries = pdbQueries + "," + proteinId;
 		}
@@ -69,20 +97,14 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 			else cleanedPdbQueries = cleanedPdbQueries + "," + s;
 		}
 		pdbIdTable = retrieveFromPDB(monitor, new URL("http://www.rcsb.org/pdb/rest/describeMol?" + cleanedPdbQueries));
-	/*	for (String s: pdbIdTable.keySet()) {
-			System.out.println(s);
-			for (String s1: pdbIdTable.get(s)) System.out.println(s1);
-		}
-		for (String s: pdbId) System.out.println(s); */
 		
-		for (long cyId: queryRange) {
-			String proteinIdParent = table.getRow(cyId).get(colName, String.class);
+		for (String proteinIdParent: pdbId2Nodes.keySet()) {
 			List<String> proteinIds = pdbIdTable.get(proteinIdParent);
 			if (proteinIds == null) {
 				proteinIds = new ArrayList<String>();
 				proteinIds.add(proteinIdParent);
 			}
-			idTable.put(proteinIdParent, cyId);
+		//	idTable.put(proteinIdParent, cyId);
 			for (String proteinId: proteinIds) {
 				if (queries == null) queries = "queries=" + proteinId;
 				else
@@ -103,11 +125,11 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 			table.createListColumn("CDD-From", Long.class, false);
 		if (table.getColumn("CDD-To") == null)
 			table.createListColumn("CDD-To", Long.class, false);
-		HashMap<String, List<String>>	accessionMap = new HashMap<String, List<String>>(),
-										pdbChainMap = new HashMap<String, List<String>>(),
-										hitTypeMap = new HashMap<String, List<String>>();
-		HashMap<String, List<Long>>	fromMap = new HashMap<String, List<Long>>(),
-									toMap = new HashMap<String, List<Long>>();
+		HashMap<Long, List<String>>	accessionMap = new HashMap<Long, List<String>>(),
+										pdbChainMap = new HashMap<Long, List<String>>(),
+										hitTypeMap = new HashMap<Long, List<String>>();
+		HashMap<Long, List<Long>>	fromMap = new HashMap<Long, List<Long>>(),
+									toMap = new HashMap<Long, List<Long>>();
 		String line;
 		while ((line = in.readLine()) != null) {
 			try {
@@ -118,32 +140,32 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 						accession = record[7];
 				long	from = Integer.parseInt(record[3]),
 						to = Integer.parseInt(record[4]);
-			//	System.out.println(proteinId);
-			//	System.out.println(accession);
-				if (! accessionMap.containsKey(proteinId)) 
-					accessionMap.put(proteinId, new ArrayList<String>());
-				accessionMap.get(proteinId).add(accession);
-				if (! pdbChainMap.containsKey(proteinId))
-					pdbChainMap.put(proteinId, new ArrayList<String>());
-				pdbChainMap.get(proteinId).add(proteinIdChain);
-				if (!hitTypeMap.containsKey(proteinId))
-					hitTypeMap.put(proteinId, new ArrayList<String>());
-				hitTypeMap.get(proteinId).add(hitType);
-				if (!fromMap.containsKey(proteinId))
-					fromMap.put(proteinId, new ArrayList<Long>());
-				fromMap.get(proteinId).add(from);
-				if (!toMap.containsKey(proteinId))
-					toMap.put(proteinId, new ArrayList<Long>());
-				toMap.get(proteinId).add(to);
+				for (long cyId: pdbId2Nodes.get(proteinId)) {
+					if (! accessionMap.containsKey(cyId)) 
+						accessionMap.put(cyId, new ArrayList<String>());
+					accessionMap.get(cyId).add(accession);
+					if (! pdbChainMap.containsKey(cyId))
+						pdbChainMap.put(cyId, new ArrayList<String>());
+					pdbChainMap.get(cyId).add(proteinIdChain);
+					if (!hitTypeMap.containsKey(cyId))
+						hitTypeMap.put(cyId, new ArrayList<String>());
+					hitTypeMap.get(cyId).add(hitType);
+					if (!fromMap.containsKey(cyId))
+						fromMap.put(cyId, new ArrayList<Long>());
+					fromMap.get(cyId).add(from);
+					if (!toMap.containsKey(cyId))
+						toMap.put(cyId, new ArrayList<Long>());
+					toMap.get(cyId).add(to);
+				}
 			} catch (ArrayIndexOutOfBoundsException e) {}
 		}
 		in.close();
-		for (String s: accessionMap.keySet()) {
-			table.getRow(idTable.get(s)).set("CDD-Accession", accessionMap.get(s));
-			table.getRow(idTable.get(s)).set("PDB-Chain", pdbChainMap.get(s));
-			table.getRow(idTable.get(s)).set("CDD-Hit-Type", hitTypeMap.get(s));
-			table.getRow(idTable.get(s)).set("CDD-From", fromMap.get(s));
-			table.getRow(idTable.get(s)).set("CDD-To", toMap.get(s));
+		for (Long cyId: accessionMap.keySet()) {
+			table.getRow(cyId).set("CDD-Accession", accessionMap.get(cyId));
+			table.getRow(cyId).set("PDB-Chain", pdbChainMap.get(cyId));
+			table.getRow(cyId).set("CDD-Hit-Type", hitTypeMap.get(cyId));
+			table.getRow(cyId).set("CDD-From", fromMap.get(cyId));
+			table.getRow(cyId).set("CDD-To", toMap.get(cyId));
 		}
 		
 		in = retrieveFromDatabase(monitor, new URL("http://www.ncbi.nlm.nih.gov/Structure/bwrpsb/bwrpsb.cgi"), queries + "&db=cdd&smode=auto&useid1=true&filter=true&&evalue=0.01&tdata=feats&dmode=rep&qdefl=false&ccdefl=false");
@@ -156,10 +178,10 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 			table.createListColumn("CDD-Feature-Type", String.class, false);
 		if (table.getColumn("CDD-Feature-Site") == null)
 			table.createListColumn("CDD-Feature-Site", String.class, false);
-		accessionMap = new HashMap<String, List<String>>();
-		HashMap<String, List<String>>	featuresPdbChain = new HashMap<String, List<String>>(),
-										featureTypeMap = new HashMap<String, List<String>>(),
-										featureSiteMap = new HashMap<String, List<String>>();
+		accessionMap = new HashMap<Long, List<String>>();
+		HashMap<Long, List<String>>	featuresPdbChain = new HashMap<Long, List<String>>(),
+										featureTypeMap = new HashMap<Long, List<String>>(),
+										featureSiteMap = new HashMap<Long, List<String>>();
 		while ((line = in.readLine()) != null) {
 			try {
 				String[] record = line.split("\t");
@@ -170,26 +192,28 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 						featureSite = record[3];
 			//	System.out.println(proteinId);
 			//	System.out.println(accession);
-				if (! accessionMap.containsKey(proteinId)) 
-					accessionMap.put(proteinId, new ArrayList<String>());
-				accessionMap.get(proteinId).add(accession);
-				if (!featuresPdbChain.containsKey(proteinId))
-					featuresPdbChain.put(proteinId, new ArrayList<String>());
-				featuresPdbChain.get(proteinId).add(proteinIdChain);
-				if (! featureTypeMap.containsKey(proteinId))
-					featureTypeMap.put(proteinId, new ArrayList<String>());
-				featureTypeMap.get(proteinId).add(featureType);
-				if (! featureSiteMap.containsKey(proteinId))
-					featureSiteMap.put(proteinId, new ArrayList<String>());
-				featureSiteMap.get(proteinId).add(featureSite);
+				for (Long cyId: pdbId2Nodes.get(proteinId)) {
+					if (! accessionMap.containsKey(cyId)) 
+						accessionMap.put(cyId, new ArrayList<String>());
+					accessionMap.get(cyId).add(accession);
+					if (!featuresPdbChain.containsKey(cyId))
+						featuresPdbChain.put(cyId, new ArrayList<String>());
+					featuresPdbChain.get(cyId).add(proteinIdChain);
+					if (! featureTypeMap.containsKey(cyId))
+						featureTypeMap.put(cyId, new ArrayList<String>());
+					featureTypeMap.get(cyId).add(featureType);
+					if (! featureSiteMap.containsKey(cyId))
+						featureSiteMap.put(cyId, new ArrayList<String>());
+					featureSiteMap.get(cyId).add(featureSite);
+				}
 			} catch (ArrayIndexOutOfBoundsException e) {}
 		}
 		in.close();
-		for (String s: accessionMap.keySet()) {
-			table.getRow(idTable.get(s)).set("CDD-Feature", accessionMap.get(s));
-			table.getRow(idTable.get(s)).set("PDB-Chain-Features", featuresPdbChain.get(s));
-			table.getRow(idTable.get(s)).set("CDD-Feature-Type", featureTypeMap.get(s));
-			table.getRow(idTable.get(s)).set("CDD-Feature-Site", featureSiteMap.get(s));
+		for (Long cyId: accessionMap.keySet()) {
+			table.getRow(cyId).set("CDD-Feature", accessionMap.get(cyId));
+			table.getRow(cyId).set("PDB-Chain-Features", featuresPdbChain.get(cyId));
+			table.getRow(cyId).set("CDD-Feature-Type", featureTypeMap.get(cyId));
+			table.getRow(cyId).set("CDD-Feature-Site", featureSiteMap.get(cyId));
 		}
 		CyTable netTable = network.getDefaultNetworkTable();
 		if (netTable.getColumn("pdbFileName") == null)
