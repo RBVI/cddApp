@@ -83,7 +83,7 @@ public class CyActivator extends AbstractCyActivator {
 		networkViewProps.setProperty(MENU_GRAVITY, "1.0");
 		registerService(bc, loadCDDDomainNetworkView, NetworkViewTaskFactory.class, networkViewProps);
 		
-		HighlightDomainTaskFactory highlightDomain = new HighlightDomainTaskFactory(bc);
+	/*	HighlightDomainTaskFactory highlightDomain = new HighlightDomainTaskFactory(bc);
 		Properties openStrucProps = new Properties();
 		openStrucProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
 		openStrucProps.setProperty(TITLE, "Highlight Domain");
@@ -103,7 +103,7 @@ public class CyActivator extends AbstractCyActivator {
 		highlightSitesProps.setProperty(IN_MENU_BAR, "true");
 		highlightSitesProps.setProperty(MENU_GRAVITY, "4.0");
 		registerService(bc, highlightSites, NetworkViewTaskFactory.class, highlightSitesProps);
-		registerService(bc, highlightSites, NodeViewTaskFactory.class, highlightSitesProps);
+		registerService(bc, highlightSites, NodeViewTaskFactory.class, highlightSitesProps); */
 		
 		StructurePanelTaskFactory structurePanel = new StructurePanelTaskFactory(bc);
 		Properties structurePanelProps = new Properties();
