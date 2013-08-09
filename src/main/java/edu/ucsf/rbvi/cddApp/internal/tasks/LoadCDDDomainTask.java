@@ -74,6 +74,9 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 		}
 		else if (table.getColumn(colName).getListElementType() == String.class) {
 			for (long cyId: queryRange) {
+				if (table.getRow(cyId).getList(colName, String.class) != null && 
+						table.getRow(cyId).getList(colName, String.class).size() > 0 &&
+						table.getRow(cyId).getList(colName, String.class).get(0).length() > 0) {
 				pdbIdsTable.put(cyId, table.getRow(cyId).getList(colName, String.class));
 				for (String s: table.getRow(cyId).getList(colName, String.class)) {
 					List<Long> temp = pdbId2Nodes.get(s);
@@ -82,6 +85,7 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 						pdbId2Nodes.put(s, temp);
 					}
 					temp.add(cyId);
+				}
 				}
 			}
 		}
