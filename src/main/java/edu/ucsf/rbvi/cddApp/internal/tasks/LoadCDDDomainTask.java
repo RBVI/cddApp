@@ -118,7 +118,7 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 		if (table.getColumn("CDD-Accession") == null)
 			table.createListColumn("CDD-Accession", String.class, false);
 		if (table.getColumn("PDB-Chain") == null)
-			table.createListColumn("PDB-Chain", String.class, false);;
+			table.createListColumn("PDB-Chain", String.class, false);
 		if (table.getColumn("CDD-Hit-Type") == null)
 			table.createListColumn("CDD-Hit-Type", String.class, false);
 		if (table.getColumn("CDD-From") == null)

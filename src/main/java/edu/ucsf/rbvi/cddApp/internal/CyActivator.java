@@ -2,36 +2,27 @@ package edu.ucsf.rbvi.cddApp.internal;
 
 import static org.cytoscape.work.ServiceProperties.COMMAND;
 import static org.cytoscape.work.ServiceProperties.COMMAND_NAMESPACE;
-import static org.cytoscape.work.ServiceProperties.INSERT_SEPARATOR_BEFORE;
 import static org.cytoscape.work.ServiceProperties.IN_MENU_BAR;
 import static org.cytoscape.work.ServiceProperties.MENU_GRAVITY;
 import static org.cytoscape.work.ServiceProperties.PREFERRED_MENU;
 import static org.cytoscape.work.ServiceProperties.TITLE;
 
-import java.io.InputStream;
-import java.util.HashMap;
 import java.util.Properties;
-import java.util.Set;
 
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.service.util.AbstractCyActivator;
-import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.NodeViewTaskFactory;
-import org.cytoscape.task.TableTaskFactory;
-import org.cytoscape.task.read.LoadVizmapFileTaskFactory;
 import org.cytoscape.work.TaskFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import edu.ucsf.rbvi.cddApp.internal.tasks.HighlightSitesTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNetworkViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNodeViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainTaskFactory;
-import edu.ucsf.rbvi.cddApp.internal.tasks.HighlightDomainTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.StructurePanelTaskFactory;
 
 public class CyActivator extends AbstractCyActivator {
@@ -104,15 +95,16 @@ public class CyActivator extends AbstractCyActivator {
 		highlightSitesProps.setProperty(MENU_GRAVITY, "4.0");
 		registerService(bc, highlightSites, NetworkViewTaskFactory.class, highlightSitesProps);
 		registerService(bc, highlightSites, NodeViewTaskFactory.class, highlightSitesProps); */
-		
-		StructurePanelTaskFactory structurePanel = new StructurePanelTaskFactory(bc);
-		Properties structurePanelProps = new Properties();
-		structurePanelProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
-		structurePanelProps.setProperty(TITLE, "Open Structure Panel");
-		structurePanelProps.setProperty(COMMAND, "structurePanel");
-		structurePanelProps.setProperty(COMMAND_NAMESPACE, "cddApp");
-		structurePanelProps.setProperty(IN_MENU_BAR, "true");
-		structurePanelProps.setProperty(MENU_GRAVITY, "5.0");
-		registerService(bc, structurePanel, TaskFactory.class, structurePanelProps);
+		if (haveGUI) {
+			StructurePanelTaskFactory structurePanel = new StructurePanelTaskFactory(bc);
+			Properties structurePanelProps = new Properties();
+			structurePanelProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
+			structurePanelProps.setProperty(TITLE, "Open Structure Panel");
+			structurePanelProps.setProperty(COMMAND, "structurePanel");
+			structurePanelProps.setProperty(COMMAND_NAMESPACE, "cddApp");
+			structurePanelProps.setProperty(IN_MENU_BAR, "true");
+			structurePanelProps.setProperty(MENU_GRAVITY, "5.0");
+			registerService(bc, structurePanel, TaskFactory.class, structurePanelProps);
+		}
 	}
 }

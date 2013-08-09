@@ -1,5 +1,6 @@
 package edu.ucsf.rbvi.cddApp.internal.ui;
 
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -211,6 +212,8 @@ public class OpenStructurePanel {
 				buttonTable.put(cyId, button);
 				JPanel chainsPanel = new JPanel();
 				chainsPanel.setLayout(new BoxLayout(chainsPanel, BoxLayout.PAGE_AXIS));
+			//	chainsPanel.setAlignmentY(Component.BOTTOM_ALIGNMENT);
+				chainsPanel.setAlignmentX(Component.RIGHT_ALIGNMENT);
 				panelTable.put(cyId, chainsPanel);
 				panel.add(nodePanel);
 				panel.add(chainsPanel);

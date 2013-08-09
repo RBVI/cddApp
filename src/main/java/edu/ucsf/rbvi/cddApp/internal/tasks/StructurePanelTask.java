@@ -1,5 +1,7 @@
 package edu.ucsf.rbvi.cddApp.internal.tasks;
 
+import java.awt.Dimension;
+
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 
@@ -27,6 +29,7 @@ public class StructurePanelTask extends AbstractTask {
 		JScrollPane scrollPane = panel.scrollPane();
 		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		frame.getContentPane().add(scrollPane);
+		frame.setPreferredSize(new Dimension(550,300));
 		frame.pack();
 		frame.setVisible(true);
 	}
