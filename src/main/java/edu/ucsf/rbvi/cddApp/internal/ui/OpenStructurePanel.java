@@ -19,6 +19,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.model.CyNetwork;
@@ -50,6 +51,7 @@ public class OpenStructurePanel {
 	private HashMap<Integer, DomainInfo> domainTable;
 	private HashMap<Integer, Boolean> domainDisplayed;
 	private HashMap<Long, JComboBox<String>> dropMenuTable;
+	private HashMap<String, JLabel> labelTable;
 	private CyNetwork network;
 	private CyTable table;
 	private JScrollPane scrollPane;
@@ -71,6 +73,7 @@ public class OpenStructurePanel {
 		domainDisplayed = new HashMap<Integer, Boolean>();
 		dropMenuTable = new HashMap<Long, JComboBox<String>>();
 		buttonTable = new HashMap<Long, JButton>();
+		labelTable = new HashMap<String, JLabel>();
 		CyApplicationManager manager  = (CyApplicationManager) CyUtils.getService(context, CyApplicationManager.class);
 		networkView = manager.getCurrentNetworkView();
 		network = networkView.getModel();
@@ -211,6 +214,7 @@ public class OpenStructurePanel {
 				panelTable.put(cyId, chainsPanel);
 				panel.add(nodePanel);
 				panel.add(chainsPanel);
+				panel.add(new JSeparator());
 				for (String s: pdbIdsTable.get(cyId)) {
 					List<String>	accession = table.getRow(cyId).getList("CDD-Accession", String.class),
 									domainChain = table.getRow(cyId).getList("PDB-Chain", String.class),
@@ -225,7 +229,7 @@ public class OpenStructurePanel {
 							final int index = counter;
 							DomainInfo thisDomain = new DomainInfo(domainChain.get(i), from.get(i), to.get(i));
 							domainTable.put(counter, thisDomain);
-							final JCheckBox thisBox = new JCheckBox(domainChain.get(i) + " " + accession.get(i) + " (" + from.get(i) + "-" + to.get(i) + ")");
+							final JCheckBox thisBox = new JCheckBox(domainChain.get(i).charAt(domainChain.get(i).length()-1) + " " + accession.get(i) + " (" + from.get(i) + "-" + to.get(i) + ")");
 							thisBox.setFont(new Font(Font.DIALOG, Font.PLAIN, 12));
 							thisBox.addItemListener(new ItemListener() {
 								
@@ -249,7 +253,7 @@ public class OpenStructurePanel {
 								residues.add((long) Integer.parseInt(residue.substring(1,residue.length())));
 							DomainInfo thisDomain = new DomainInfo(featureChain.get(i), residues);
 							domainTable.put(counter, thisDomain);
-							final JCheckBox thisBox = new JCheckBox(featureChain.get(i) + " " + feature.get(i) + " " + featureSite.get(i));
+							final JCheckBox thisBox = new JCheckBox(featureChain.get(i).charAt(featureChain.get(i).length()-1) + " " + feature.get(i) + " " + featureSite.get(i));
 							thisBox.setFont(new Font(Font.DIALOG, Font.PLAIN, 12));
 							thisBox.addItemListener(new ItemListener() {
 								
@@ -266,6 +270,9 @@ public class OpenStructurePanel {
 						}
 					}
 					pdbChainsCheckbox.put(s, allCheckBox);
+					JLabel pdbLabel = new JLabel(s);
+					pdbLabel.setFont(new Font(Font.DIALOG, Font.BOLD, 12));
+					labelTable.put(s, pdbLabel);
 				}
 			}
 		}
@@ -287,16 +294,20 @@ public class OpenStructurePanel {
 			}
 		for (String pdb: modelName.keySet()) {
 			if (pdbDisplayed.get(pdb) == null || ! pdbDisplayed.get(pdb))
-				for (Long panelId: pdbId2Nodes.get(pdb))
+				for (Long panelId: pdbId2Nodes.get(pdb)) {
+					panelTable.get(panelId).add(labelTable.get(pdb));
 					for (JCheckBox box: pdbChainsCheckbox.get(pdb))
 						panelTable.get(panelId).add(box);
+				}
 			pdbDisplayed.put(pdb, true);
 		}
 		for (String pdb: pdbId2Nodes.keySet()) {
 			if (modelName.get(pdb) == null) {
-				for (Long panelId: pdbId2Nodes.get(pdb))
+				for (Long panelId: pdbId2Nodes.get(pdb)) {
+					panelTable.get(panelId).remove(labelTable.get(pdb));
 					for (JCheckBox box: pdbChainsCheckbox.get(pdb))
 						panelTable.get(panelId).remove(box);
+				}
 				pdbDisplayed.remove(pdb);
 			}
 		}
