@@ -59,17 +59,19 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 		}
 		if (table.getColumn(colName).getListElementType() == null && table.getColumn(colName).getType() == String.class) {
 			for (long cyId: queryRange) {
-				List<String> l = new ArrayList<String>();
-				for (String s: table.getRow(cyId).get(colName, String.class).split(",")) {
-					l.add(s);
-					List<Long> temp = pdbId2Nodes.get(s);
-					if (temp == null) {
-						temp = new ArrayList<Long>();
-						pdbId2Nodes.put(s, temp);
+				if (table.getRow(cyId).get(colName, String.class) != null) {
+					List<String> l = new ArrayList<String>();
+					for (String s: table.getRow(cyId).get(colName, String.class).split(",")) {
+						l.add(s);
+						List<Long> temp = pdbId2Nodes.get(s);
+						if (temp == null) {
+							temp = new ArrayList<Long>();
+							pdbId2Nodes.put(s, temp);
+						}
+						temp.add(cyId);
 					}
-					temp.add(cyId);
+					pdbIdsTable.put(cyId, l);
 				}
-				pdbIdsTable.put(cyId, l);
 			}
 		}
 		else if (table.getColumn(colName).getListElementType() == String.class) {

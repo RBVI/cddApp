@@ -86,7 +86,8 @@ public class OpenStructurePanel {
 			for (long cyId: queryRange) {
 				List<String>	pdbChain = table.getRow(cyId).getList("PDB-Chain", String.class),
 								pdbChainFeature = table.getRow(cyId).getList("PDB-Chain-Features", String.class);
-				if ((pdbChain != null && pdbChain.size() != 0 && pdbChain.get(0).length() > 0) &&
+				if (table.getRow(cyId).get(colName, String.class) != null &&
+						(pdbChain != null && pdbChain.size() != 0 && pdbChain.get(0).length() > 0) &&
 						(pdbChainFeature != null && pdbChainFeature.size() != 0 && pdbChainFeature.get(0).length() > 0)) {
 					List<String> l = new ArrayList<String>();
 					for (String s: table.getRow(cyId).get(colName, String.class).split(",")) {
