@@ -51,7 +51,7 @@ public class OpenStructurePanel {
 	private HashMap<String, Boolean> pdbDisplayed;
 	private HashMap<Integer, DomainInfo> domainTable;
 	private HashMap<Integer, Boolean> domainDisplayed;
-	private HashMap<Long, JComboBox<String>> dropMenuTable;
+	private HashMap<Long, JComboBox> dropMenuTable;
 	private HashMap<String, JLabel> labelTable;
 	private CyNetwork network;
 	private CyTable table;
@@ -72,7 +72,7 @@ public class OpenStructurePanel {
 		pdbDisplayed = new HashMap<String, Boolean>();
 		domainTable = new HashMap<Integer, DomainInfo>();
 		domainDisplayed = new HashMap<Integer, Boolean>();
-		dropMenuTable = new HashMap<Long, JComboBox<String>>();
+		dropMenuTable = new HashMap<Long, JComboBox>();
 		buttonTable = new HashMap<Long, JButton>();
 		labelTable = new HashMap<String, JLabel>();
 		CyApplicationManager manager  = (CyApplicationManager) CyUtils.getService(context, CyApplicationManager.class);
@@ -138,7 +138,7 @@ public class OpenStructurePanel {
 				label.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
 				nodePanel.add(label);
 				String[] tempArray = new String[pdbIdsTable.get(cyId).size()];
-				JComboBox<String> pdbMenu = new JComboBox<String>(pdbIdsTable.get(cyId).toArray(tempArray));
+				JComboBox pdbMenu = new JComboBox(pdbIdsTable.get(cyId).toArray(tempArray));
 				pdbMenu.setSelectedIndex(0);
 				pdbMenu.addActionListener(new ActionListener() {
 					
