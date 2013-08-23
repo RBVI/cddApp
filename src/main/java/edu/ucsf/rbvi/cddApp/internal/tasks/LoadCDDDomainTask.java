@@ -20,13 +20,16 @@ import org.cytoscape.work.Tunable;
 import org.cytoscape.work.util.ListSingleSelection;
 
 public class LoadCDDDomainTask extends AbstractNetworkTask {
-
+	
 	@Tunable(description="Choose column to load domains from")
-	public ListSingleSelection<String> loadColumn;
+	public ListSingleSelection<String> loadColumn; // Column to load
 	private CyTable table;
 	private CyNetwork network;
 	private List<Long> entry = null;
-	
+	/**
+	 * Constructor for loading CDD Domain from the CDD website.
+	 * @param network CyNetwork to load the domain.
+	 */
 	public LoadCDDDomainTask(CyNetwork network) {
 		super(network);
 		this.table = network.getDefaultNodeTable();
@@ -38,8 +41,26 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 		this.network = network;
 	}
 
+	/**
+	 * Specify the set of nodes for which to load CDD Domain information. If this function is not
+	 * called, domains for all nodes will be loaded.
+	 * @param entry List of SUID of nodes.
+	 */
 	public void setEntry(List<Long> entry) {this.entry = entry;}
 	
+	/**
+	 * Load domain information from CDD. Also gets information from the PDB if it is a PDB ID.
+	 * Domain information is loaded into the node table, with the following columns:
+	 * CDD-Accession accession number of CDD domain
+	 * PDB-Chain if it is a PDB ID, the chain ID (in the form of PDB ID + chain)
+	 * CDD-Hit-Type type of domain
+	 * CDD-From lower limit of the domain
+	 * CDD-To upper limit of the domain
+	 * CDD-Feature type of feature site
+	 * PDB-Chain-Features chain containing the CDD-Feature
+	 * CDD-Feature-Type type of CDD feature
+	 * CDD-Feature-Site list of residues of the feature site
+	 */
 	@Override
 	public void run(TaskMonitor monitor) throws Exception {
 		monitor.setTitle("Load CDD Domains");

@@ -38,6 +38,12 @@ import edu.ucsf.rbvi.cddApp.internal.util.CyUtils;
 import edu.ucsf.rbvi.cddApp.internal.util.Messages;
 import edu.ucsf.rbvi.cddApp.internal.util.SendCommandThread;
 
+/**
+ * The user interface for opening and highlighting a PDB structure using structureViz. Creates a
+ * JScrollPane containing the user interface, then returns it to the user.
+ * @author aywu
+ *
+ */
 public class OpenStructurePanel {
 
 	/**
@@ -63,6 +69,10 @@ public class OpenStructurePanel {
 	private HashMap<String, String> modelName;
 	private int counter = 0;
 	
+	/**
+	 * Creates the user interface to open any PDB structures on the network.
+	 * @param context
+	 */
 	public OpenStructurePanel(BundleContext context) {
 		taskManager = (TaskManager<?, ?>) CyUtils.getService(context, TaskManager.class);
 		pdbIdsTable = new HashMap<Long, List<String>>();
@@ -284,6 +294,10 @@ public class OpenStructurePanel {
 		loadCheckBoxes();
 	}
 	
+	/**
+	 * The GUI containing the stuff required to open the structure
+	 * @return JScrollPane containing the user interface.
+	 */
 	public JScrollPane scrollPane() {return scrollPane;}
 	
 	private void loadCheckBoxes() {
