@@ -15,6 +15,7 @@ import org.cytoscape.task.NodeViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.view.model.View;
 import org.cytoscape.work.AbstractTask;
+import org.cytoscape.work.FinishStatus;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.ProvidesTitle;
 import org.cytoscape.work.TaskManager;
@@ -77,7 +78,7 @@ public class HighlightSitesTask extends AbstractTask implements TaskObserver {
 		return "Open structure";
 	}
 
-	public void allFinished() {
+	public void allFinished(FinishStatus arg0) {
 		List<String> models = new SendCommandThread().sendChimeraCommand(context, "list models");
 		Pattern p = Pattern.compile("model id #(\\d+) type Molecule name (....)");
 		HashMap<String, String> modelName = new HashMap<String, String>();

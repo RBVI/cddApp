@@ -27,6 +27,7 @@ import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.task.NodeViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
+import org.cytoscape.work.FinishStatus;
 import org.cytoscape.work.ObservableTask;
 import org.cytoscape.work.TaskManager;
 import org.cytoscape.work.TaskObserver;
@@ -184,7 +185,7 @@ public class OpenStructurePanel {
 											
 										}
 										
-										public void allFinished() {
+										public void allFinished(FinishStatus arg0) {
 											loadCheckBoxes();
 											updateButtons();
 											panel.revalidate();
@@ -210,7 +211,7 @@ public class OpenStructurePanel {
 											
 										}
 										
-										public void allFinished() {
+										public void allFinished(FinishStatus arg0) {
 											loadCheckBoxes();
 											updateButtons();
 											panel.revalidate();
