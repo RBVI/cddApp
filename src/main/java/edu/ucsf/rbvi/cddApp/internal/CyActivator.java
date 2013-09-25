@@ -9,7 +9,10 @@ import static org.cytoscape.work.ServiceProperties.TITLE;
 
 import java.util.Properties;
 
+import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CySwingApplication;
+import org.cytoscape.application.swing.CytoPanelComponent;
+import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.NetworkViewTaskFactory;
@@ -24,6 +27,7 @@ import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNetworkViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNodeViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.StructurePanelTaskFactory;
+import edu.ucsf.rbvi.cddApp.internal.ui.DomainsPanel;
 
 public class CyActivator extends AbstractCyActivator {
 	private static Logger logger = LoggerFactory
@@ -105,6 +109,10 @@ public class CyActivator extends AbstractCyActivator {
 			structurePanelProps.setProperty(IN_MENU_BAR, "true");
 			structurePanelProps.setProperty(MENU_GRAVITY, "5.0");
 			registerService(bc, structurePanel, TaskFactory.class, structurePanelProps);
+			
+			DomainsPanel domainsPanel = new DomainsPanel(getService(bc, CyApplicationManager.class));
+			registerService(bc, domainsPanel, CytoPanelComponent.class, new Properties());
+			registerService(bc, domainsPanel, RowsSetListener.class, new Properties());
 		}
 	}
 }
