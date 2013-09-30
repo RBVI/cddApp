@@ -205,6 +205,7 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 			table.createListColumn("CDD-Feature-Type", String.class, false);
 		if (table.getColumn("CDD-Feature-Site") == null)
 			table.createListColumn("CDD-Feature-Site", String.class, false);
+		HashMap<Long, List<String>> oldAccessionMap = accessionMap;
 		accessionMap = new HashMap<Long, List<String>>();
 		HashMap<Long, List<String>>	featuresPdbChain = new HashMap<Long, List<String>>(),
 										featureTypeMap = new HashMap<Long, List<String>>(),
@@ -242,6 +243,26 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 			table.getRow(cyId).set("CDD-Feature-Type", featureTypeMap.get(cyId));
 			table.getRow(cyId).set("CDD-Feature-Site", featureSiteMap.get(cyId));
 		}
+		
+		if (table.getColumn("CDD-Domain-Size") == null)
+			table.createListColumn("CDD-Domain-Size", Long.class, false);
+		if (table.getColumn("CDD-Domain-Chart") == null)
+			table.createColumn("CDD-Domain-Chart", String.class, false);
+		for (Long cyId: accessionMap.keySet()) {
+			List<String> accessions = oldAccessionMap.get(cyId);
+			List<Long> from = fromMap.get(cyId),
+					to = toMap.get(cyId),
+					domainSize = new ArrayList<Long>();
+			String domains = null;
+			for (int i = 0; i < accessions.size(); i++) {
+				domainSize.add(to.get(i) - from.get(i));
+				if (domains == null) domains = accessions.get(i);
+				else domains = domains + "," + accessions.get(i);
+			}
+			table.getRow(cyId).set("CDD-Domain-Size", domainSize);
+			table.getRow(cyId).set("CDD-Domain-Chart", "piechart: attributelist=\"CDD-Domain-Size\" colorlist=\"contrasting\" labellist=\"" + domains + "\"");
+		}
+		
 		CyTable netTable = network.getDefaultNetworkTable();
 		if (netTable.getColumn("pdbFileName") == null)
 			netTable.createColumn("pdbFileName", String.class, false);
