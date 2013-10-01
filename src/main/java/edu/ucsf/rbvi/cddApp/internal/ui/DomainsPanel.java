@@ -68,7 +68,8 @@ public class DomainsPanel extends JPanel implements CytoPanelComponent,
 						cddFeatureSite = table.getRow(node).getList("CDD-Feature-Site", String.class);
 				List<Long> cddFrom = table.getRow(node).getList("CDD-From", Long.class),
 						cddTo = table.getRow(node).getList("CDD-To", Long.class); 
-				
+				if (cddFrom == null || cddFrom.size() == 0) continue;
+				if (cddTo == null || cddTo.size() == 0) continue;
 				HashSet<String> chains = new HashSet<String>();
 				for (String s: pdbChains) chains.add(s);
 				for (String s: pdbChainFeatures) chains.add(s);
