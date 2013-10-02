@@ -61,7 +61,7 @@ public class DomainsPanel extends JPanel implements CytoPanelComponent,
 				selectedNodes.put(suid,r.getRow().get(CyNetwork.SELECTED, Boolean.class));
 		}
 		for (long node: selectedNodes.keySet()) {
-			if (table.getRow(node) != null && selectedNodes.get(node)) {
+			if (table.getRow(node) != null && selectedNodes.get(node) != null && selectedNodes.get(node)) {
 				List<String> pdbChains = table.getRow(node).getList("PDB-Chain", String.class),
 						pdbChainFeatures = table.getRow(node).getList("PDB-Chain-Features", String.class),
 						cddAccession = table.getRow(node).getList("CDD-Accession", String.class),
@@ -71,8 +71,8 @@ public class DomainsPanel extends JPanel implements CytoPanelComponent,
 						cddFeatureSite = table.getRow(node).getList("CDD-Feature-Site", String.class);
 				List<Long> cddFrom = table.getRow(node).getList("CDD-From", Long.class),
 						cddTo = table.getRow(node).getList("CDD-To", Long.class);
-				if ((pdbChains == null || pdbChains.get(0).equals("")) &&
-						(cddFeature == null || cddFeature.get(0).equals(""))) continue;
+				if ((pdbChains == null || pdbChains.size() == 0 || pdbChains.get(0).equals("")) &&
+						(cddFeature == null || cddFeature.size() == 0 || cddFeature.get(0).equals(""))) continue;
 				HashSet<String> chains = new HashSet<String>();
 				for (String s: pdbChains) if (!s.equals("")) chains.add(s);
 				for (String s: pdbChainFeatures) if (!s.equals("")) chains.add(s);
@@ -97,13 +97,13 @@ public class DomainsPanel extends JPanel implements CytoPanelComponent,
 				for (String chain: chains) {
 					message = message + "<p>Protein: " + chain + "</p>\n";
 					message = message + "<table border=\"1\">\n<tr><th>Domain Name</th><th>Domain Type</th><th>Domain Range</th></tr>\n";
-					if (pdbChains != null && ! pdbChains.get(0).equals("") && pdbChainPos.get(chain) != null)
+					if (pdbChains != null && pdbChains.size() != 0 && ! pdbChains.get(0).equals("") && pdbChainPos.get(chain) != null)
 						for (int i: pdbChainPos.get(chain)) {
 							message = message + "<tr><td>" + cddAccession.get(i) + "</td>\n" +
 									"<td>" + domainType.get(i) + "</td>\n" +
 									"<td>" + cddFrom.get(i) + "-" + cddTo.get(i) + "</td></tr>\n\n";
 						}
-					if (cddFeature != null && ! cddFeature.get(0).equals("") && pdbChainFeaturePos.get(chain) != null)
+					if (cddFeature != null && cddFeature.size() != 0 && ! cddFeature.get(0).equals("") && pdbChainFeaturePos.get(chain) != null)
 						for (int i: pdbChainFeaturePos.get(chain)) {
 							message = message + "<tr><td>" + cddFeature.get(i) + "</td>\n" +
 									"<td>" + cddFeatureType.get(i) + "</td>\n" +
