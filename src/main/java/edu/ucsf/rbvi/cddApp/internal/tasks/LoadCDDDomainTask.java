@@ -26,6 +26,7 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 	private CyTable table;
 	private CyNetwork network;
 	private List<Long> entry = null;
+	private Pattern pattern;
 	/**
 	 * Constructor for loading CDD Domain from the CDD website.
 	 * @param network CyNetwork to load the domain.
@@ -39,6 +40,7 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 		}
 		loadColumn = new ListSingleSelection<String>(columns);
 		this.network = network;
+		pattern = Pattern.compile("(gi)(\\d+)");
 	}
 
 	/**
@@ -83,6 +85,8 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 				if (table.getRow(cyId).get(colName, String.class) != null) {
 					List<String> l = new ArrayList<String>();
 					for (String s: table.getRow(cyId).get(colName, String.class).split(",")) {
+						Matcher m = pattern.matcher(s);
+						if (m.matches()) s = "gi|" + m.group(2);
 						l.add(s);
 						List<Long> temp = pdbId2Nodes.get(s);
 						if (temp == null) {
@@ -102,6 +106,8 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 						table.getRow(cyId).getList(colName, String.class).get(0).length() > 0) {
 				pdbIdsTable.put(cyId, table.getRow(cyId).getList(colName, String.class));
 				for (String s: table.getRow(cyId).getList(colName, String.class)) {
+					Matcher m = pattern.matcher(s);
+					if (m.matches()) s = "gi|" + m.group(2);
 					List<Long> temp = pdbId2Nodes.get(s);
 					if (temp == null) {
 						temp = new ArrayList<Long>();
