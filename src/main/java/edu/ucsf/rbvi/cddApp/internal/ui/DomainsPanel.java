@@ -2,7 +2,6 @@ package edu.ucsf.rbvi.cddApp.internal.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,9 +9,9 @@ import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.Icon;
+import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CytoPanelComponent;
@@ -26,7 +25,7 @@ import org.cytoscape.model.events.RowsSetListener;
 public class DomainsPanel extends JPanel implements CytoPanelComponent,
 		RowsSetListener {
 	
-	private JTextArea textArea;
+	private JEditorPane textArea;
 	private JScrollPane scrollPane;
 	private HashMap<Long, Boolean> selectedNodes;
 	private CyApplicationManager manager;
@@ -37,7 +36,7 @@ public class DomainsPanel extends JPanel implements CytoPanelComponent,
 
 	public DomainsPanel(CyApplicationManager manager) {
 		setLayout(new BorderLayout());
-		textArea = new JTextArea(50, 100);
+		textArea = new JEditorPane("text/html", null);
 		textArea.setEditable(false);
 		scrollPane = new JScrollPane(textArea);
 		add(BorderLayout.CENTER, scrollPane);
@@ -46,7 +45,10 @@ public class DomainsPanel extends JPanel implements CytoPanelComponent,
 	}
 	
 	public void handleEvent(RowsSetEvent arg0) {
-		CyTable table = manager.getCurrentNetwork().getDefaultNodeTable();
+		try {
+		CyTable table;
+		if (manager.getCurrentNetwork() == null) return;
+		table = manager.getCurrentNetwork().getDefaultNodeTable();
 		String message = "";
 		Collection<RowSetRecord> record = arg0.getPayloadCollection();
 		for (RowSetRecord r: record) {
@@ -64,15 +66,16 @@ public class DomainsPanel extends JPanel implements CytoPanelComponent,
 						pdbChainFeatures = table.getRow(node).getList("PDB-Chain-Features", String.class),
 						cddAccession = table.getRow(node).getList("CDD-Accession", String.class),
 						domainType = table.getRow(node).getList("CDD-Hit-Type", String.class),
+						cddFeature = table.getRow(node).getList("CDD-Feature", String.class),
 						cddFeatureType = table.getRow(node).getList("CDD-Feature-Type", String.class),
 						cddFeatureSite = table.getRow(node).getList("CDD-Feature-Site", String.class);
 				List<Long> cddFrom = table.getRow(node).getList("CDD-From", Long.class),
-						cddTo = table.getRow(node).getList("CDD-To", Long.class); 
-				if (cddFrom == null || cddFrom.size() == 0) continue;
-				if (cddTo == null || cddTo.size() == 0) continue;
+						cddTo = table.getRow(node).getList("CDD-To", Long.class);
+				if ((pdbChains == null || pdbChains.get(0).equals("")) &&
+						(cddFeature == null || cddFeature.get(0).equals(""))) continue;
 				HashSet<String> chains = new HashSet<String>();
-				for (String s: pdbChains) chains.add(s);
-				for (String s: pdbChainFeatures) chains.add(s);
+				for (String s: pdbChains) if (!s.equals("")) chains.add(s);
+				for (String s: pdbChainFeatures) if (!s.equals("")) chains.add(s);
 				
 				HashMap<String, List<Integer>> pdbChainPos = new HashMap<String, List<Integer>>(),
 						pdbChainFeaturePos = new HashMap<String, List<Integer>>();
@@ -88,23 +91,32 @@ public class DomainsPanel extends JPanel implements CytoPanelComponent,
 						pdbChainFeaturePos.put(n, new ArrayList<Integer>());
 					pdbChainFeaturePos.get(n).add(i);
 				}
-				message = message + "Node Name:\n" + 
-						table.getRow(node).get(CyNetwork.NAME, String.class) + "\n\n";
+				message = message + "<div>";
+				message = message + "<p><b>Node: \n" + 
+						table.getRow(node).get(CyNetwork.NAME, String.class) + "</b></p>\n\n";
 				for (String chain: chains) {
-					message = message + "Protein: " + chain + "\n";
-					for (int i: pdbChainPos.get(chain)) {
-						message = message + "CDD Accession: " + cddAccession.get(i) + "\n" +
-								"CDD Domain Type: " + domainType.get(i) + "\n" +
-								"Domain Range: " + cddFrom.get(i) + "-" + cddTo.get(i) + "\n\n";
-					}
-					for (int i: pdbChainFeaturePos.get(chain)) {
-						message = message + "CDD Feature Type: " + cddFeatureType.get(i) + "\n" +
-								"CDD Feature Site: " + cddFeatureSite.get(i) + "\n\n";
-					}
+					message = message + "<p>Protein: " + chain + "</p>\n";
+					message = message + "<table border=\"1\">\n<tr><th>Domain Name</th><th>Domain Type</th><th>Domain Range</th></tr>\n";
+					if (pdbChains != null && ! pdbChains.get(0).equals("") && pdbChainPos.get(chain) != null)
+						for (int i: pdbChainPos.get(chain)) {
+							message = message + "<tr><td>" + cddAccession.get(i) + "</td>\n" +
+									"<td>" + domainType.get(i) + "</td>\n" +
+									"<td>" + cddFrom.get(i) + "-" + cddTo.get(i) + "</td></tr>\n\n";
+						}
+					if (cddFeature != null && ! cddFeature.get(0).equals("") && pdbChainFeaturePos.get(chain) != null)
+						for (int i: pdbChainFeaturePos.get(chain)) {
+							message = message + "<tr><td>" + cddFeature.get(i) + "</td>\n" +
+									"<td>" + cddFeatureType.get(i) + "</td>\n" +
+									"<td>" + cddFeatureSite.get(i) + "</td></tr>\n\n";
+						}
+					message = message + "</table>";
 				}
+				message = message + "</div>";
 			}
 		}
 		textArea.setText(message);
+		}
+		catch (Exception e){e.printStackTrace();}
 	}
 
 	public Component getComponent() {
