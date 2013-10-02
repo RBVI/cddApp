@@ -2,6 +2,9 @@ package edu.ucsf.rbvi.cddApp.internal.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Desktop;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -12,6 +15,8 @@ import javax.swing.Icon;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.swing.CytoPanelComponent;
@@ -38,6 +43,29 @@ public class DomainsPanel extends JPanel implements CytoPanelComponent,
 		setLayout(new BorderLayout());
 		textArea = new JEditorPane("text/html", null);
 		textArea.setEditable(false);
+		textArea.addHyperlinkListener(new HyperlinkListener() {
+		    public void hyperlinkUpdate(HyperlinkEvent e) {
+		        if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+			    	try {
+						textArea.setPage(e.getURL());
+					} catch (IOException e2) {
+						// TODO Auto-generated catch block
+						e2.printStackTrace();
+					}
+		      /*      if (Desktop.isDesktopSupported()) {
+		                try {
+		                    Desktop.getDesktop().browse(e.getURL().toURI());
+		                } catch (IOException e1) {
+		                    // TODO Auto-generated catch block
+		                    e1.printStackTrace();
+		                } catch (URISyntaxException e1) {
+		                    // TODO Auto-generated catch block
+		                    e1.printStackTrace();
+		                }
+		            } */
+		        }
+		    }
+		});
 		scrollPane = new JScrollPane(textArea);
 		add(BorderLayout.CENTER, scrollPane);
 		selectedNodes = new HashMap<Long, Boolean>();
@@ -99,7 +127,7 @@ public class DomainsPanel extends JPanel implements CytoPanelComponent,
 					message = message + "<table border=\"1\">\n<tr><th>Domain Name</th><th>Domain Type</th><th>Domain Range</th></tr>\n";
 					if (pdbChains != null && pdbChains.size() != 0 && ! pdbChains.get(0).equals("") && pdbChainPos.get(chain) != null)
 						for (int i: pdbChainPos.get(chain)) {
-							message = message + "<tr><td>" + cddAccession.get(i) + "</td>\n" +
+							message = message + "<tr><td><a href=\"http://www.ncbi.nlm.nih.gov/cdd/?term=" + cddAccession.get(i) + "\">" + cddAccession.get(i) + "</a></td>\n" +
 									"<td>" + domainType.get(i) + "</td>\n" +
 									"<td>" + cddFrom.get(i) + "-" + cddTo.get(i) + "</td></tr>\n\n";
 						}
