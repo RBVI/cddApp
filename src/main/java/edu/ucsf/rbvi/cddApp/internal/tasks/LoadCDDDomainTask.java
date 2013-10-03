@@ -260,11 +260,22 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 					to = toMap.get(cyId),
 					domainSize = new ArrayList<Long>();
 			String domains = null;
+			long domainLengths = 0;
 			for (int i = 0; i < accessions.size(); i++) {
 				domainSize.add(to.get(i) - from.get(i));
+				domainLengths += to.get(i) - from.get(i);
 				if (domains == null) domains = accessions.get(i);
 				else domains = domains + "," + accessions.get(i);
 			}
+			accessions = accessionMap.get(cyId);
+			List<String> featureSite = featureSiteMap.get(cyId);
+			long featureLengths = 0;
+			for (int i = 0; i < accessions.size(); i++) {
+				featureLengths += featureSite.get(i).split(",").length;
+				if (domains == null) domains = accessions.get(i);
+				else domains = domains + "," + accessions.get(i);
+			}
+			for (int i = 0; i < accessions.size(); i++) domainSize.add(featureSite.get(i).split(",").length * domainLengths / featureLengths);
 			table.getRow(cyId).set("CDD-Domain-Size", domainSize);
 			table.getRow(cyId).set("CDD-Domain-Chart", "piechart: attributelist=\"CDD-Domain-Size\" colorlist=\"contrasting\" labellist=\"" + domains + "\"");
 		}
