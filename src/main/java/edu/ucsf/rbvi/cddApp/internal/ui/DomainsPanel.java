@@ -26,6 +26,7 @@ import org.cytoscape.model.CyTable;
 import org.cytoscape.model.events.RowSetRecord;
 import org.cytoscape.model.events.RowsSetEvent;
 import org.cytoscape.model.events.RowsSetListener;
+import org.cytoscape.util.swing.OpenBrowser;
 
 public class DomainsPanel extends JPanel implements CytoPanelComponent,
 		RowsSetListener {
@@ -39,30 +40,15 @@ public class DomainsPanel extends JPanel implements CytoPanelComponent,
 	 */
 	private static final long serialVersionUID = 4255348824636450908L;
 
-	public DomainsPanel(CyApplicationManager manager) {
+	public DomainsPanel(CyApplicationManager manager, OpenBrowser openBrowser) {
+		final OpenBrowser ob = openBrowser;
 		setLayout(new BorderLayout());
 		textArea = new JEditorPane("text/html", null);
 		textArea.setEditable(false);
 		textArea.addHyperlinkListener(new HyperlinkListener() {
 		    public void hyperlinkUpdate(HyperlinkEvent e) {
 		        if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-			    	try {
-						textArea.setPage(e.getURL());
-					} catch (IOException e2) {
-						// TODO Auto-generated catch block
-						e2.printStackTrace();
-					}
-		      /*      if (Desktop.isDesktopSupported()) {
-		                try {
-		                    Desktop.getDesktop().browse(e.getURL().toURI());
-		                } catch (IOException e1) {
-		                    // TODO Auto-generated catch block
-		                    e1.printStackTrace();
-		                } catch (URISyntaxException e1) {
-		                    // TODO Auto-generated catch block
-		                    e1.printStackTrace();
-		                }
-		            } */
+		        	ob.openURL(e.getURL().toString());
 		        }
 		    }
 		});

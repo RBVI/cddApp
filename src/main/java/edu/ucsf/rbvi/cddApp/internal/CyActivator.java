@@ -17,6 +17,7 @@ import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.NodeViewTaskFactory;
+import org.cytoscape.util.swing.OpenBrowser;
 import org.cytoscape.work.TaskFactory;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
@@ -110,7 +111,7 @@ public class CyActivator extends AbstractCyActivator {
 			structurePanelProps.setProperty(MENU_GRAVITY, "5.0");
 			registerService(bc, structurePanel, TaskFactory.class, structurePanelProps);
 			
-			DomainsPanel domainsPanel = new DomainsPanel(getService(bc, CyApplicationManager.class));
+			DomainsPanel domainsPanel = new DomainsPanel(getService(bc, CyApplicationManager.class), getService(bc, OpenBrowser.class));
 			registerService(bc, domainsPanel, CytoPanelComponent.class, new Properties());
 			registerService(bc, domainsPanel, RowsSetListener.class, new Properties());
 		}
