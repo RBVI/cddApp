@@ -62,6 +62,10 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 	 * PDB-Chain-Features chain containing the CDD-Feature
 	 * CDD-Feature-Type type of CDD feature
 	 * CDD-Feature-Site list of residues of the feature site
+	 * CDD-Domain-Size size of the domain
+	 * CDD-Domain-Chart a Custom Graphics component which shows the domains as
+	   a piechart on the node. The size of the domain is proportional to the
+	   size of the slice of the pie.
 	 */
 	@Override
 	public void run(TaskMonitor monitor) throws Exception {

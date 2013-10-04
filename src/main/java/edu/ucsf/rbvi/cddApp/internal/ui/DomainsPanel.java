@@ -28,6 +28,11 @@ import org.cytoscape.model.events.RowsSetEvent;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.util.swing.OpenBrowser;
 
+/**
+ * Displays information on the domains of a protein from the CDD in the Results panel.
+ * @author Allan Wu
+ *
+ */
 public class DomainsPanel extends JPanel implements CytoPanelComponent,
 		RowsSetListener {
 	
@@ -40,6 +45,11 @@ public class DomainsPanel extends JPanel implements CytoPanelComponent,
 	 */
 	private static final long serialVersionUID = 4255348824636450908L;
 
+	/**
+	 * 
+	 * @param manager CyApplication manager of this instance of Cytoscape
+	 * @param openBrowser class that opens the default browser from Cytoscape
+	 */
 	public DomainsPanel(CyApplicationManager manager, OpenBrowser openBrowser) {
 		final OpenBrowser ob = openBrowser;
 		setLayout(new BorderLayout());
