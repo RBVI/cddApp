@@ -71,8 +71,11 @@ public class DomainsPanel extends JPanel implements CytoPanelComponent,
 	public void handleEvent(RowsSetEvent arg0) {
 		try {
 		CyTable table;
-		if (manager.getCurrentNetwork() == null) return;
+		// If we're not getting selection, we're not interested
+		if (manager.getCurrentNetwork() == null || !arg0.containsColumn(CyNetwork.SELECTED)) return;
 		table = manager.getCurrentNetwork().getDefaultNodeTable();
+		// Oops, not relevant to us...
+		if (table.getColumn("PDB-Chain") == null) return;
 		String message = "";
 		Collection<RowSetRecord> record = arg0.getPayloadCollection();
 		for (RowSetRecord r: record) {
