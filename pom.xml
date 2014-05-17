@@ -4,7 +4,7 @@
 	<properties>
 		<bundle.symbolicName>cddApp</bundle.symbolicName>
 		<bundle.namespace>edu.ucsf.rbvi.cddApp.internal</bundle.namespace>
-		<cytoscape.api.version>3.1.0-SNAPSHOT</cytoscape.api.version>
+		<cytoscape.api.version>3.1.0</cytoscape.api.version>
 		
 		<maven-bundle-plugin.version>2.3.4</maven-bundle-plugin.version>
 		<osgi.api.version>4.2.0</osgi.api.version>
@@ -83,11 +83,6 @@
 			<url>http://code.cytoscape.org/nexus/content/repositories/releases/</url>
 		</repository>
 		<repository>
-			<id>local_cdk_release</id>
-			<name>CDK Release</name>
-			<url>file://${basedir}/cdk-repo</url>
-		</repository>
-		<repository>
 			<id>apache-repo-releases</id>
 			<url>https://repository.apache.org/content/repositories/</url>
 			<releases>
@@ -109,12 +104,12 @@
 		</dependency>
 		<dependency>
 			<groupId>org.cytoscape</groupId>
-			<artifactId>group-api</artifactId>
+			<artifactId>application-api</artifactId>
 			<version>${cytoscape.api.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.cytoscape</groupId>
-			<artifactId>application-api</artifactId>
+			<artifactId>command-executor-api</artifactId>
 			<version>${cytoscape.api.version}</version>
 		</dependency>
 		<dependency>

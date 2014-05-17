@@ -14,6 +14,7 @@ import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.service.util.AbstractCyActivator;
+import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.task.NetworkTaskFactory;
 import org.cytoscape.task.NetworkViewTaskFactory;
 import org.cytoscape.task.NodeViewTaskFactory;
@@ -24,10 +25,11 @@ import org.osgi.framework.ServiceReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import edu.ucsf.rbvi.cddApp.internal.model.CDDDomainManager;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNetworkViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNodeViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainTaskFactory;
-import edu.ucsf.rbvi.cddApp.internal.tasks.StructurePanelTaskFactory;
+// import edu.ucsf.rbvi.cddApp.internal.tasks.StructurePanelTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.ui.DomainsPanel;
 
 public class CyActivator extends AbstractCyActivator {
@@ -48,8 +50,16 @@ public class CyActivator extends AbstractCyActivator {
 			haveGUI = false;
 			// Issue error and return
 		}
+
+		// Get some services we'll need
+		CyApplicationManager appManager = getService(bc, CyApplicationManager.class);
+		OpenBrowser openBrowser = getService(bc, OpenBrowser.class);
+		CyServiceRegistrar serviceRegistrar = getService(bc, CyServiceRegistrar.class);
+
+		// Create our manager object
+		CDDDomainManager manager = new CDDDomainManager(appManager, openBrowser, serviceRegistrar);
 		
-		LoadCDDDomainTaskFactory loadCDDDomain = new LoadCDDDomainTaskFactory();
+		LoadCDDDomainTaskFactory loadCDDDomain = new LoadCDDDomainTaskFactory(manager);
 		Properties settingsProps = new Properties();
 		settingsProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
 		settingsProps.setProperty(TITLE, "Load CDD Domains for Network");
@@ -59,7 +69,7 @@ public class CyActivator extends AbstractCyActivator {
 		settingsProps.setProperty(MENU_GRAVITY, "1.0");
 		registerService(bc, loadCDDDomain, NetworkTaskFactory.class, settingsProps);
 
-		LoadCDDDomainNodeViewTaskFactory loadCDDDomainNodeView = new LoadCDDDomainNodeViewTaskFactory();
+		LoadCDDDomainNodeViewTaskFactory loadCDDDomainNodeView = new LoadCDDDomainNodeViewTaskFactory(manager);
 		Properties nodeViewProps = new Properties();
 		nodeViewProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
 		nodeViewProps.setProperty(TITLE, "Load CDD Domains for Node");
@@ -69,7 +79,7 @@ public class CyActivator extends AbstractCyActivator {
 		nodeViewProps.setProperty(MENU_GRAVITY, "2.0");
 		registerService(bc, loadCDDDomainNodeView, NodeViewTaskFactory.class, nodeViewProps);
 		
-		LoadCDDDomainNetworkViewTaskFactory loadCDDDomainNetworkView = new LoadCDDDomainNetworkViewTaskFactory();
+		LoadCDDDomainNetworkViewTaskFactory loadCDDDomainNetworkView = new LoadCDDDomainNetworkViewTaskFactory(manager);
 		Properties networkViewProps = new Properties();
 		networkViewProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
 		networkViewProps.setProperty(TITLE, "Load CDD Domains for selected Node(s)");
@@ -101,7 +111,8 @@ public class CyActivator extends AbstractCyActivator {
 		registerService(bc, highlightSites, NetworkViewTaskFactory.class, highlightSitesProps);
 		registerService(bc, highlightSites, NodeViewTaskFactory.class, highlightSitesProps); */
 		if (haveGUI) {
-			StructurePanelTaskFactory structurePanel = new StructurePanelTaskFactory(bc);
+/*
+			StructurePanelTaskFactory structurePanel = new StructurePanelTaskFactory(manager);
 			Properties structurePanelProps = new Properties();
 			structurePanelProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
 			structurePanelProps.setProperty(TITLE, "Open Structure Panel");
@@ -110,8 +121,9 @@ public class CyActivator extends AbstractCyActivator {
 			structurePanelProps.setProperty(IN_MENU_BAR, "true");
 			structurePanelProps.setProperty(MENU_GRAVITY, "5.0");
 			registerService(bc, structurePanel, TaskFactory.class, structurePanelProps);
+*/
 			
-			DomainsPanel domainsPanel = new DomainsPanel(getService(bc, CyApplicationManager.class), getService(bc, OpenBrowser.class));
+			DomainsPanel domainsPanel = new DomainsPanel(manager);
 			registerService(bc, domainsPanel, CytoPanelComponent.class, new Properties());
 			registerService(bc, domainsPanel, RowsSetListener.class, new Properties());
 		}

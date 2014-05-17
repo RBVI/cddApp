@@ -11,8 +11,15 @@ import org.cytoscape.task.AbstractNetworkViewTaskFactory;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.TaskIterator;
 
-public class LoadCDDDomainNetworkViewTaskFactory extends
-		AbstractNetworkViewTaskFactory {
+import edu.ucsf.rbvi.cddApp.internal.model.CDDDomainManager;
+
+public class LoadCDDDomainNetworkViewTaskFactory extends AbstractNetworkViewTaskFactory {
+	final CDDDomainManager domainManager;
+
+	public LoadCDDDomainNetworkViewTaskFactory(CDDDomainManager manager) {
+		super();
+		this.domainManager = manager;
+	}
 	
 	public boolean isReady(CyNetworkView networkView) {
 		if (super.isReady(networkView))
@@ -25,7 +32,7 @@ public class LoadCDDDomainNetworkViewTaskFactory extends
 		List<CyNode> selectedNodes = CyTableUtil.getNodesInState(arg0.getModel(), CyNetwork.SELECTED, true);
 		List<Long> selected = new ArrayList<Long>();
 		for (CyNode n: selectedNodes) selected.add(n.getSUID());
-		LoadCDDDomainTask task = new LoadCDDDomainTask(network);
+		LoadCDDDomainTask task = new LoadCDDDomainTask(network, domainManager);
 		task.setEntry(selected);
 		return new TaskIterator(task);
 	}
