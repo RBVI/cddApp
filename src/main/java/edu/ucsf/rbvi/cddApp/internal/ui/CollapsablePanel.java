@@ -62,7 +62,7 @@ public class CollapsablePanel extends JPanel {
 		}
 
 		public void setText(String text) {
-			System.out.println("Setting label text to: "+text);
+			// System.out.println("Setting label text to: "+text);
 			label.setText("<html>"+text+"</html>");
 		}
 

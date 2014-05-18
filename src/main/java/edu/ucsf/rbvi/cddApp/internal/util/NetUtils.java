@@ -37,7 +37,7 @@ public class NetUtils {
 		List<String> inputLines = new ArrayList<String>();
 		String line;
 		while ((line  = in.readLine()) != null) {
-			System.out.println("Hit line from CDD: "+line);
+			// System.out.println("Hit line from CDD: "+line);
 			line = line.trim();
 			// Skip over the header lines
 			if (line.startsWith("#") || line.startsWith("Query") || line.length()==0) continue;
@@ -61,7 +61,7 @@ public class NetUtils {
 		List<String> inputLines = new ArrayList<String>();
 		String line;
 		while ((line  = in.readLine()) != null) {
-			System.out.println("Feature line from CDD: "+line);
+			// System.out.println("Feature line from CDD: "+line);
 			line = line.trim();
 			// Skip over the header lines
 			if (line.startsWith("#") || line.startsWith("Query") || line.length()==0) continue;
@@ -82,7 +82,7 @@ public class NetUtils {
 	public static void validatePDBIds(String queryString,
 	                                  Map<String, CyIdentifiable> reverseMap) throws Exception {
 		URL url = new URL(RCSB_ID+"?"+queryString);
-		System.out.println("Querying "+RCSB_ID+" with query: \n-->"+queryString);
+		// System.out.println("Querying "+RCSB_ID+" with query: \n-->"+queryString);
 		Pattern r = Pattern.compile("structureId=\"(.*?)\" status=\"(.*?)\"");
 		HttpURLConnection con = (HttpURLConnection) url.openConnection();
 		con.setDoOutput(false);
@@ -91,7 +91,7 @@ public class NetUtils {
 		String line;
 		while ((line = in.readLine()) != null) {
 			Matcher m = r.matcher(line);
-			System.out.println("ID line from RCSB: "+line);
+			// System.out.println("ID line from RCSB: "+line);
 			if (m.find()) {
 				String id = m.group(1), status = m.group(2);
 				if (!status.equals("CURRENT") && !status.equals("OBSOLETE")) {
@@ -113,7 +113,7 @@ public class NetUtils {
 		Map<String, PDBStructure> structureMap = new HashMap<String, PDBStructure>();
 
 		URL url = new URL(RCSB_DESCRIBE+"?"+queryString);
-		System.out.println("Querying "+RCSB_DESCRIBE+" with query: \n-->"+queryString);
+		// System.out.println("Querying "+RCSB_DESCRIBE+" with query: \n-->"+queryString);
 		Pattern r = Pattern.compile("<chain id=\"([A-Z])\"");
 		Pattern s = Pattern.compile("<structureId id=\"(.*?)\"");
 		String structure = null;
@@ -124,7 +124,7 @@ public class NetUtils {
 		BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
 		String line;
 		while ((line = in.readLine()) != null) {
-			System.out.println("DESCRIBE line from RCSB: "+line);
+			// System.out.println("DESCRIBE line from RCSB: "+line);
 			Matcher mr = r.matcher(line);
 			Matcher ms = s.matcher(line);
 			String chain = null;
@@ -132,7 +132,7 @@ public class NetUtils {
 			if (mr.find()) chain = mr.group(1);
 			if (structure != null && chain != null) {
 				CyIdentifiable id = reverseMap.get(structure);
-				System.out.println("Adding "+structure+"."+chain+" to id "+id.toString());
+				// System.out.println("Adding "+structure+"."+chain+" to id "+id.toString());
 				newReverseMap.put(structure+"."+chain, id);
 				if (!chainMap.containsKey(id))
 					chainMap.put(id, new ArrayList<PDBStructure>());
@@ -168,7 +168,7 @@ public class NetUtils {
 	public static String buildPDBQuery(Map<String, CyIdentifiable> reverseMap) {
 		String query = null;
 		for (String q: reverseMap.keySet()) {
-			System.out.println("Node id for structure "+q+" is "+reverseMap.get(q));
+			// System.out.println("Node id for structure "+q+" is "+reverseMap.get(q));
 			if (query == null && q != null && q.length() > 0)
 				query = "structureId="+q;
 			else if (q != null && q.length() > 0)
@@ -203,7 +203,7 @@ public class NetUtils {
 	public static BufferedReader queryCDD (String dataType, String query) throws Exception {
 		URL url = new URL(CDD_BATCH_URL);
 		String queryString = CDD_BATCH_QUERY+"&tdata="+dataType+query;
-		System.out.println("Querying "+CDD_BATCH_URL+" with query: \n-->"+queryString);
+		// System.out.println("Querying "+CDD_BATCH_URL+" with query: \n-->"+queryString);
 		HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
 		con.setDoOutput(true);
@@ -226,7 +226,7 @@ public class NetUtils {
 		}
 		in.close();
 
-		System.out.println("cdsid = "+cdsid);
+		// System.out.println("cdsid = "+cdsid);
 
 		while (status != 0) {
 			Thread.sleep(500);

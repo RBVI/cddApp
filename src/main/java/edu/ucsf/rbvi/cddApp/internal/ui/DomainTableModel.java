@@ -113,15 +113,15 @@ public class DomainTableModel extends AbstractTableModel {
 	}
 
 	public void setValueAt(Object value, int rowIndex, int column) {
-		System.out.println("SetValue at: "+rowIndex+","+column+" to "+value);
-		System.out.println("  current value at: "+rowIndex+","+column+" is "+getValueAt(rowIndex, column));
+		// System.out.println("SetValue at: "+rowIndex+","+column+" to "+value);
+		// System.out.println("  current value at: "+rowIndex+","+column+" is "+getValueAt(rowIndex, column));
 		if (column != 3 || !(value instanceof Boolean)) return;
 		Boolean boolValue = (Boolean)value;
 		if (shown.get(rowIndex).equals(boolValue)) return;
 
 		if (boolValue) {
 			domainManager.setIgnoreSelection(true);
-			System.out.println("Selection ignored");
+			// System.out.println("Selection ignored");
 			// Show the structure & select the domain/site
 			svHandler.openStructure(CyUtils.getName(domainManager.getCurrentNetwork(),cyId),chain);
 			svHandler.select(chain, (String)getValueAt(rowIndex, 2));

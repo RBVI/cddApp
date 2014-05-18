@@ -114,14 +114,14 @@ public class CDDDomainManager {
 		// flush all payload events, then sleep a little before
 		// re-enabling selection.
 		if (!ignore) {
-			System.out.println("Flushing payload events");
+			// System.out.println("Flushing payload events");
 			eventHelper.flushPayloadEvents();
 			Thread t = new Thread() {
 				public void run() {
 					try {
 					Thread.sleep(500);
 					} catch(Exception e) {};
-					System.out.println("Setting ignoring selection to false");
+					// System.out.println("Setting ignoring selection to false");
 					resetIgnoreSelection();
 				}
 			};
@@ -150,7 +150,7 @@ public class CDDDomainManager {
 		featureMap = new HashMap<CyIdentifiable, List<CDDFeature>>();
 		pdbChainMap = new HashMap<CyIdentifiable, List<PDBStructure>>();
 
-		System.out.println("Reloading domains");
+		// System.out.println("Reloading domains");
 
 		boolean havePDB = PDBStructure.havePDB(network);
 
@@ -158,10 +158,12 @@ public class CDDDomainManager {
 			CyIdentifiable id = (CyIdentifiable)node;
 			List<CDDHit> hitList = CDDHit.reloadHits(network, id);
 			if (hitList == null || hitList.size() == 0) continue;
+			// System.out.println("Found "+hitList.size()+" domains for "+id);
+			hitMap.put(id, hitList);
+
 			List<CDDFeature> featureList = CDDFeature.reloadFeatures(network, id);
 			if (featureList == null || featureList.size() == 0) continue;
-			System.out.println("Found "+hitList.size()+" domains for "+id);
-			hitMap.put(id, hitList);
+			// System.out.println("Found "+featureList.size()+" features for "+id);
 			featureMap.put(id, featureList);
 
 			// Reload chains...
@@ -174,10 +176,10 @@ public class CDDDomainManager {
 	public boolean hasChains(CyIdentifiable identifiable) {
 		if (pdbChainMap == null) 
 			return false;
-		System.out.println("Looking at chains for "+identifiable);
+		// System.out.println("Looking at chains for "+identifiable);
 		boolean result =  pdbChainMap.containsKey(identifiable);
-		if (result)
-			System.out.println(""+identifiable+" has chains");
+		// if (result)
+		// 	System.out.println(""+identifiable+" has chains");
 		return result;
 	}
 
@@ -213,16 +215,16 @@ public class CDDDomainManager {
 		if (!hitMap.containsKey(id))
 			return null;
 
-		System.out.println("Looking at chain: "+chain);
+		// System.out.println("Looking at chain: "+chain);
 		List<CDDHit> cddHits = getHits(id, chain);
 		if (cddHits == null) {
-			System.out.println("Can't find any hits for chain: "+chain);
+			// System.out.println("Can't find any hits for chain: "+chain);
 			return null;
 		}
 
 		List<CDDFeature> cddFeatures = getFeatures(id, chain);
 		if (cddFeatures == null) {
-			System.out.println("Can't find any hits for chain: "+chain);
+			// System.out.println("Can't find any features for chain: "+chain);
 			return null;
 		}
 		String summary = "<i>"+chain+"</i>";
@@ -431,16 +433,4 @@ public class CDDDomainManager {
 		}
 		return idList;
 	}
-
-	/*
-	private void createFeatureColumns(CyNetwork network) {
-		CyTable nodeTable = network.getDefaultNodeTable();
-		createColumn(nodeTable, CDD_FEATURE, List.class, String.class);
-		createColumn(nodeTable, PDB_CHAIN_FEATURES, List.class, String.class);
-		createColumn(nodeTable, CDD_FEATURE_TYPE, List.class, String.class);
-		createColumn(nodeTable, CDD_FEATURE_SITE, List.class, String.class);
-		createColumn(nodeTable, CDD_DOMAIN_SIZE, List.class, Long.class);
-		createColumn(nodeTable, CDD_DOMAIN_CHART, String.class, null);
-	}
-	*/
 }
