@@ -30,9 +30,8 @@ public class NetUtils {
 	 * search interface we pay a lot of unnecessary overhead.  At some point, this should
 	 * be refactored to just pull this information directly by ID
 	 */
-	public static Map<CyIdentifiable, List<CDDHit>>
-					getHitsFromCDD(String queryString, Map<String, CyIdentifiable> reverseMap) throws Exception {
-		Map<CyIdentifiable, List<CDDHit>> hitMap = new HashMap<CyIdentifiable, List<CDDHit>>();
+	public static void getHitsFromCDD(String queryString, Map<String, CyIdentifiable> reverseMap, 
+	                                  Map<CyIdentifiable, List<CDDHit>> hitMap) throws Exception {
 		BufferedReader in = queryCDD("hits", queryString);
 		List<String> inputLines = new ArrayList<String>();
 		String line;
@@ -49,14 +48,11 @@ public class NetUtils {
 				hitMap.get(cyId).add(hit);
 			}
 		}
-		return hitMap;
+		return;
 	}
 
-	public static Map<CyIdentifiable, List<CDDFeature>>
-					getFeaturesFromCDD(String queryString, Map<String, CyIdentifiable> reverseMap) 
-					throws Exception {
-
-		Map<CyIdentifiable, List<CDDFeature>> featureMap = new HashMap<CyIdentifiable, List<CDDFeature>>();
+	public static void getFeaturesFromCDD(String queryString, Map<String, CyIdentifiable> reverseMap,
+	                                      Map<CyIdentifiable, List<CDDFeature>> featureMap) throws Exception {
 		BufferedReader in = queryCDD("feats", queryString);
 		List<String> inputLines = new ArrayList<String>();
 		String line;
@@ -73,7 +69,7 @@ public class NetUtils {
 				featureMap.get(cyId).add(feature);
 			}
 		}
-		return featureMap;
+		return;
 	}
 
 	/**
@@ -141,7 +137,8 @@ public class NetUtils {
 					structureMap.put(structure, new PDBStructure(structure, null));
 
 				structureMap.get(structure).addChain(chain);
-				chainMap.get(id).add(structureMap.get(structure));
+				if (!chainMap.get(id).contains(structureMap.get(structure)))
+					chainMap.get(id).add(structureMap.get(structure));
 			}
 		}
 		in.close();

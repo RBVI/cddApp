@@ -10,6 +10,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -133,13 +137,20 @@ public class CDDDomainManager {
 
 	private void resetIgnoreSelection() {ignoringSelection = false;}
 
-	public void loadDomains(TaskMonitor monitor, CyNetwork network, String idColumn) {
+	public void loadDomains(final TaskMonitor monitor, CyNetwork network, String idColumn) {
 		Map<CyIdentifiable, List<String>> idMap = getIdentifiers(network, idColumn);
 		if (idMap == null || idMap.size() == 0) return;
+
+		hitMap = new HashMap<CyIdentifiable, List<CDDHit>>();
+		featureMap = new HashMap<CyIdentifiable, List<CDDFeature>>();
+		pdbChainMap = new HashMap<CyIdentifiable, List<PDBStructure>>();
 
 		Map<String, CyIdentifiable> reverseMap = new HashMap<String, CyIdentifiable>();
 		String queryString = NetUtils.buildCDDQuery(reverseMap, idMap);
 		loadCDDInfo(monitor, network, queryString, reverseMap);
+
+		// Update the charts
+		PieChart.updatePieChartColumn(network, hitMap, featureMap);
 
 		// Finally, clear our pointer to the PDB column
 		PDBStructure.updatePDBColumn(network, null);
@@ -171,10 +182,13 @@ public class CDDDomainManager {
 			if (chains != null && chains.size() > 0)
 				pdbChainMap.put(id, chains);
 		}
+
+		// Update the charts
+		PieChart.updatePieChartColumn(network, hitMap, featureMap);
 	}
 
 	public boolean hasChains(CyIdentifiable identifiable) {
-		if (pdbChainMap == null) 
+		if (pdbChainMap == null)
 			return false;
 		// System.out.println("Looking at chains for "+identifiable);
 		boolean result =  pdbChainMap.containsKey(identifiable);
@@ -197,7 +211,7 @@ public class CDDDomainManager {
 		List<CDDHit> cddHits = getHits(id);
 		List<CDDFeature> cddFeatures = getFeatures(id);
 		List<PDBStructure> structChains = null;
-		
+
 		if (pdbChainMap != null && pdbChainMap.containsKey(id)) {
 			structChains = pdbChainMap.get(id);
 		}
@@ -308,7 +322,7 @@ public class CDDDomainManager {
 		return cddChainFeatures;
 	}
 
-	public void loadPDBInfo(TaskMonitor monitor, CyNetwork network, String idColumn) {
+	public void loadPDBInfo(final TaskMonitor monitor, final CyNetwork network, String idColumn) {
 		Map<CyIdentifiable, List<String>> idMap = getIdentifiers(network, idColumn);
 		if (idMap == null || idMap.size() == 0) return;
 
@@ -337,6 +351,12 @@ public class CDDDomainManager {
 			return;
 		}
 
+		// Clear out our maps that we're going to override
+		for (CyIdentifiable cyId: pdbChainMap.keySet()) {
+			hitMap.remove(cyId);
+			featureMap.remove(cyId);
+		}
+
 		// Now we can actually query the CDD
 		queryString = NetUtils.buildCDDQuery(reverseMap);
 		loadCDDInfo(monitor, network, queryString, reverseMap);
@@ -345,29 +365,87 @@ public class CDDDomainManager {
 		PDBStructure.updatePDBColumn(network, idColumn);
 	}
 
-	private void loadCDDInfo(TaskMonitor monitor, CyNetwork network,
-	                         String queryString, Map<String, CyIdentifiable> reverseMap) {
-		monitor.setStatusMessage("Getting hits from CDD");
+	private void loadCDDInfo(final TaskMonitor monitor, final CyNetwork network,
+	                         final String queryString, Map<String, CyIdentifiable> reverseMap) {
+
+		// monitor.setStatusMessage("Getting hits from CDD");
 		CDDHit.createHitColumns(network);
-		try {
-			hitMap = NetUtils.getHitsFromCDD(queryString, reverseMap); // Pass down monitor?
-			CDDHit.updateColumns(network, hitMap);
-		} catch (Exception e) {
-			monitor.showMessage(TaskMonitor.Level.ERROR, "Failed to get hits: "+e.getMessage());
-			return;
+		CDDFeature.createFeatureColumns(network);
+
+		monitor.setStatusMessage("Getting information from CDD");
+		Future<String> hitTask = loadCDDHits(monitor, queryString, reverseMap, hitMap);
+		Future<String> featureTask = loadCDDFeatures(monitor, queryString, reverseMap, featureMap);
+
+		while (!hitTask.isDone() || !featureTask.isDone()) {
+			try {
+				Thread.sleep(500);
+			} catch (Exception e) {}
 		}
 
-		monitor.setStatusMessage("Getting features from CDD");
-		CDDFeature.createFeatureColumns(network);
-		try {
-			featureMap = NetUtils.getFeaturesFromCDD(queryString, reverseMap); // Pass down monitor?
-			CDDFeature.updateColumns(network, featureMap);
-		} catch (Exception e) {
-			monitor.showMessage(TaskMonitor.Level.ERROR, "Failed to get features: "+e.getMessage());
-			return;
+		CDDHit.updateColumns(network, hitMap);
+		CDDFeature.updateColumns(network, featureMap);
+		/*
+		{
+			// At some point, this should be done in parallel
+			monitor.setStatusMessage("Getting hits from CDD");
+			try {
+				NetUtils.getHitsFromCDD(queryString, reverseMap, hitMap); // Pass down monitor?
+				CDDHit.updateColumns(network, hitMap);
+			} catch (Exception e) {
+				monitor.showMessage(TaskMonitor.Level.ERROR, "Failed to get hits: "+e.getMessage());
+				return;
+			}
 		}
-		monitor.setStatusMessage("Done.  Loaded "+featureMap.values().size()+" features for "+
-		                         featureMap.keySet().size()+" nodes");
+
+		{
+			monitor.setStatusMessage("Getting features from CDD");
+			try {
+				NetUtils.getFeaturesFromCDD(queryString, reverseMap, featureMap); // Pass down monitor?
+				CDDFeature.updateColumns(network, featureMap);
+			} catch (Exception e) {
+				monitor.showMessage(TaskMonitor.Level.ERROR, "Failed to get features: "+e.getMessage());
+				return;
+			}
+			monitor.setStatusMessage("Done.  Loaded "+featureMap.values().size()+" features for "+
+			                         featureMap.keySet().size()+" nodes");
+		}
+		*/
+	}
+
+	private final ExecutorService pool = Executors.newFixedThreadPool(2);
+
+	private Future<String> loadCDDHits(final TaskMonitor monitor, final String queryString, 
+	                                   final Map<String, CyIdentifiable> reverseMap,
+												          	 final Map<CyIdentifiable, List<CDDHit>> hitMap) {
+		return pool.submit(new Callable<String>() {
+			@Override
+			public String call() throws Exception {
+				try {
+					NetUtils.getHitsFromCDD(queryString, reverseMap, hitMap); // Pass down monitor?
+				} catch (Exception e) {
+					monitor.showMessage(TaskMonitor.Level.ERROR, "Failed to get hits: "+e.getMessage());
+					return e.getMessage();
+				}
+				return "done";
+			}
+		});
+	}
+
+	private Future<String> loadCDDFeatures(final TaskMonitor monitor, final String queryString, 
+	                                       final Map<String, CyIdentifiable> reverseMap,
+												          	     final Map<CyIdentifiable, List<CDDFeature>> featureMap) {
+		return pool.submit(new Callable<String>() {
+			@Override
+			public String call() throws Exception {
+				try {
+					NetUtils.getFeaturesFromCDD(queryString, reverseMap, featureMap); // Pass down monitor?
+				} catch (Exception e) {
+					monitor.showMessage(TaskMonitor.Level.ERROR, "Failed to get features: "+e.getMessage());
+					return e.getMessage();
+				}
+				return "done";
+			}
+		});
 	}
 
 	/**
