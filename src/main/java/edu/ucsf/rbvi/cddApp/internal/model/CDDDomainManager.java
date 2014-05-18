@@ -18,6 +18,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.application.events.SetCurrentNetworkEvent;
+import org.cytoscape.application.events.SetCurrentNetworkListener;
 import org.cytoscape.event.CyEventHelper;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyIdentifiable;
@@ -36,7 +38,7 @@ import edu.ucsf.rbvi.cddApp.internal.util.NetUtils;
  * CDDDomainManager
  * 
  */
-public class CDDDomainManager {
+public class CDDDomainManager implements SetCurrentNetworkListener {
 	private static Font awesomeFont = null;
 	final CyApplicationManager appManager;
 	final CyEventHelper eventHelper;
@@ -365,6 +367,15 @@ public class CDDDomainManager {
 		PDBStructure.updatePDBColumn(network, idColumn);
 	}
 
+	public void handleEvent(SetCurrentNetworkEvent e) {
+		CyNetwork network = e.getNetwork();
+		if (network != null) {
+			try {
+				reLoadDomains(network);
+			} catch (Exception ex) { ex.printStackTrace(); }
+		}
+	}
+
 	private void loadCDDInfo(final TaskMonitor monitor, final CyNetwork network,
 	                         final String queryString, Map<String, CyIdentifiable> reverseMap) {
 
@@ -384,32 +395,6 @@ public class CDDDomainManager {
 
 		CDDHit.updateColumns(network, hitMap);
 		CDDFeature.updateColumns(network, featureMap);
-		/*
-		{
-			// At some point, this should be done in parallel
-			monitor.setStatusMessage("Getting hits from CDD");
-			try {
-				NetUtils.getHitsFromCDD(queryString, reverseMap, hitMap); // Pass down monitor?
-				CDDHit.updateColumns(network, hitMap);
-			} catch (Exception e) {
-				monitor.showMessage(TaskMonitor.Level.ERROR, "Failed to get hits: "+e.getMessage());
-				return;
-			}
-		}
-
-		{
-			monitor.setStatusMessage("Getting features from CDD");
-			try {
-				NetUtils.getFeaturesFromCDD(queryString, reverseMap, featureMap); // Pass down monitor?
-				CDDFeature.updateColumns(network, featureMap);
-			} catch (Exception e) {
-				monitor.showMessage(TaskMonitor.Level.ERROR, "Failed to get features: "+e.getMessage());
-				return;
-			}
-			monitor.setStatusMessage("Done.  Loaded "+featureMap.values().size()+" features for "+
-			                         featureMap.keySet().size()+" nodes");
-		}
-		*/
 	}
 
 	private final ExecutorService pool = Executors.newFixedThreadPool(2);

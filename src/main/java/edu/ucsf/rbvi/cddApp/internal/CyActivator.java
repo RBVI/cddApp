@@ -10,6 +10,7 @@ import static org.cytoscape.work.ServiceProperties.TITLE;
 import java.util.Properties;
 
 import org.cytoscape.application.CyApplicationManager;
+import org.cytoscape.application.events.SetCurrentNetworkListener;
 import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.model.events.RowsSetListener;
@@ -58,6 +59,9 @@ public class CyActivator extends AbstractCyActivator {
 
 		// Create our manager object
 		CDDDomainManager manager = new CDDDomainManager(appManager, openBrowser, serviceRegistrar);
+
+		// Resister our manager object to listen for SetCurrentNetwork events
+		registerService(bc, manager, SetCurrentNetworkListener.class, new Properties());
 		
 		LoadCDDDomainTaskFactory loadCDDDomain = new LoadCDDDomainTaskFactory(manager);
 		Properties settingsProps = new Properties();
