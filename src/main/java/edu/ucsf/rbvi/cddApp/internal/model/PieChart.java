@@ -30,7 +30,9 @@ public class PieChart {
 
 		for (CyIdentifiable cyId: hitMap.keySet()) {
 			List<CDDHit> hitList = hitMap.get(cyId);
+			if (hitList == null) { hitList = new ArrayList<CDDHit>(); }
 			List<CDDFeature> featureList = featureMap.get(cyId);
+			if (featureList == null) { featureList = new ArrayList<CDDFeature>(); }
 			List<Long> domainSize = new ArrayList<Long>();
 			String domains = null;
 			long domainLengths = 0;
@@ -51,13 +53,15 @@ public class PieChart {
 					domains = domains + "," + feature.getAccession();
 			}
 
-			for (CDDFeature feature: featureList) {
-				domainSize.add(feature.getFeatureSite().split(",").length * domainLengths / featureLengths);
-			}
+			if (featureLengths > 0) {
+				for (CDDFeature feature: featureList) {
+					domainSize.add(feature.getFeatureSite().split(",").length * domainLengths / featureLengths);
+				}
 
-			network.getRow(cyId).set(DOMAIN_SIZE, domainSize);
-			network.getRow(cyId).set(DOMAIN_CHART, "piechart: attributelist=\""+DOMAIN_SIZE+
+				network.getRow(cyId).set(DOMAIN_SIZE, domainSize);
+				network.getRow(cyId).set(DOMAIN_CHART, "piechart: attributelist=\""+DOMAIN_SIZE+
 			                                       "\" colorlist=\"contrasting\" labellist=\""+domains+"\"");
+			}
 		}
 	}
 }

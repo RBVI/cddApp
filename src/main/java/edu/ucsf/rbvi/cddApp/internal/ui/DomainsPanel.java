@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -51,7 +53,7 @@ public class DomainsPanel extends JPanel
 	// private JEditorPane textArea;
 	private JPanel topPanel;
 	private JScrollPane scrollPane;
-	private HashMap<CyIdentifiable, Boolean> selectedNodes;
+	private ConcurrentMap<CyIdentifiable, Boolean> selectedNodes;
 	/**
 	 * 
 	 */
@@ -68,7 +70,7 @@ public class DomainsPanel extends JPanel
 		topPanel = new JPanel(new GridBagLayout());
 		scrollPane = new JScrollPane(topPanel);
 		add(scrollPane);
-		selectedNodes = new HashMap<CyIdentifiable, Boolean>();
+		selectedNodes = new ConcurrentHashMap<CyIdentifiable, Boolean>();
 	}
 
 	public void handleEvent(RowsSetEvent arg0) {
