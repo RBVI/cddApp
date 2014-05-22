@@ -43,8 +43,10 @@ public class NetUtils {
 			CDDHit hit = new CDDHit(line);
 			if (reverseMap.containsKey(hit.getProteinId())) {
 				CyIdentifiable cyId = reverseMap.get(hit.getProteinId());
-				if (!hitMap.containsKey(cyId))
+				if (!hitMap.containsKey(cyId)) {
+					// System.out.println("Assigning hit to "+cyId);
 					hitMap.put(cyId, new ArrayList<CDDHit>());
+				}
 				hitMap.get(cyId).add(hit);
 			}
 		}
@@ -127,6 +129,7 @@ public class NetUtils {
 			if (ms.find()) structure = ms.group(1);
 			if (mr.find()) chain = mr.group(1);
 			if (structure != null && chain != null) {
+				// System.out.println("Id for "+structure);
 				CyIdentifiable id = reverseMap.get(structure);
 				// System.out.println("Adding "+structure+"."+chain+" to id "+id.toString());
 				newReverseMap.put(structure+"."+chain, id);
@@ -149,6 +152,7 @@ public class NetUtils {
 	                                   Map<CyIdentifiable, List<String>> idMap) {
 		String query = null;
 		for (CyIdentifiable id: idMap.keySet()) {
+			// System.out.println("Looking at id: "+id);
 			List<String> idList = idMap.get(id);
 			if (idList == null || idList.size() == 0) continue;
 			for (String proteinId: idList) {
@@ -156,7 +160,8 @@ public class NetUtils {
 					query = "structureId="+proteinId;
 				else
 					query += ","+proteinId;
-				reverseMap.put(proteinId, id);
+				// System.out.println("Adding "+id+" to "+proteinId);
+				reverseMap.put(proteinId.toUpperCase(), id);
 			}
 		}
 		return query;
@@ -178,10 +183,12 @@ public class NetUtils {
 	                                   Map<CyIdentifiable, List<String>> idMap) {
 		String query = "";
 		for (CyIdentifiable id: idMap.keySet()) {
+			// System.out.println("Looking at id: "+id);
 			List<String> idList = idMap.get(id);
 			if (idList == null || idList.size() == 0) continue;
 			for (String proteinId: idList) {
 				query += "&queries="+proteinId;
+				// System.out.println("Adding "+id+" to "+proteinId);
 				reverseMap.put(proteinId, id);
 			}
 		}

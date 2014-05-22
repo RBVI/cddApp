@@ -35,12 +35,16 @@ public class CDDHit {
 
 	public static void updateColumns(CyNetwork network, Map<CyIdentifiable, List<CDDHit>> hitMap) {
 		for (CyIdentifiable cyId: hitMap.keySet()) {
-			updateStringColumn(network, cyId, CDD_ACCESSION, hitMap.get(cyId));
-			updateStringColumn(network, cyId, CDD_NAME, hitMap.get(cyId));
-			updateStringColumn(network, cyId, PDB_CHAIN, hitMap.get(cyId));
-			updateStringColumn(network, cyId, CDD_HIT_TYPE, hitMap.get(cyId));
-			updateLongColumn(network, cyId, CDD_FROM, hitMap.get(cyId));
-			updateLongColumn(network, cyId, CDD_TO, hitMap.get(cyId));
+			try {
+				updateStringColumn(network, cyId, CDD_ACCESSION, hitMap.get(cyId));
+				updateStringColumn(network, cyId, CDD_NAME, hitMap.get(cyId));
+				updateStringColumn(network, cyId, PDB_CHAIN, hitMap.get(cyId));
+				updateStringColumn(network, cyId, CDD_HIT_TYPE, hitMap.get(cyId));
+				updateLongColumn(network, cyId, CDD_FROM, hitMap.get(cyId));
+				updateLongColumn(network, cyId, CDD_TO, hitMap.get(cyId));
+			} catch (Exception e) {
+				throw new RuntimeException("Unable to set column for "+cyId+": "+e.getMessage());
+			}
 		}
 	}
 
@@ -55,7 +59,8 @@ public class CDDHit {
 		List<Long> fromList = network.getRow(id).getList(CDD_FROM, Long.class);
 		List<Long> toList = network.getRow(id).getList(CDD_TO, Long.class);
 
-		if (accessions.size() != names.size() ||
+		if (accessions == null ||
+		    accessions.size() != names.size() ||
 				accessions.size() != chains.size() ||
 				accessions.size() != types.size() ||
 				accessions.size() != fromList.size() ||

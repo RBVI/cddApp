@@ -46,7 +46,8 @@ public class CDDFeature {
 		List<String> types = network.getRow(id).getList(CDD_FEATURE_TYPE, String.class);
 		List<String> sites = network.getRow(id).getList(CDD_FEATURE_SITE, String.class);
 
-		if (features.size() != chainFeatures.size() ||
+		if (features == null ||
+				features.size() != chainFeatures.size() ||
 				features.size() != types.size() ||
 				features.size() != sites.size())
 			return null;

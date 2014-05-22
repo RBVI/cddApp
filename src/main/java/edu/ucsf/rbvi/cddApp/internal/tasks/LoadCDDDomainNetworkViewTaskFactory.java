@@ -3,6 +3,7 @@ package edu.ucsf.rbvi.cddApp.internal.tasks;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
@@ -29,11 +30,10 @@ public class LoadCDDDomainNetworkViewTaskFactory extends AbstractNetworkViewTask
 	
 	public TaskIterator createTaskIterator(CyNetworkView arg0) {
 		CyNetwork network = arg0.getModel();
-		List<CyNode> selectedNodes = CyTableUtil.getNodesInState(arg0.getModel(), CyNetwork.SELECTED, true);
-		List<Long> selected = new ArrayList<Long>();
-		for (CyNode n: selectedNodes) selected.add(n.getSUID());
+		List<CyIdentifiable> selectedNodes = 
+			new ArrayList<CyIdentifiable>(CyTableUtil.getNodesInState(arg0.getModel(), CyNetwork.SELECTED, true));
 		LoadCDDDomainTask task = new LoadCDDDomainTask(network, domainManager);
-		task.setEntry(selected);
+		task.setEntry(selectedNodes);
 		return new TaskIterator(task);
 	}
 

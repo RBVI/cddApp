@@ -12,6 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.cytoscape.model.CyColumn;
+import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.task.AbstractNetworkTask;
@@ -32,7 +33,7 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 	public ListSingleSelection<String> pdbColumn; // Column to load
 	private CyTable table;
 	private CyNetwork network;
-	private List<Long> entry = null;
+	private List<CyIdentifiable> entry = null;
 	private Pattern pattern;
 	final CDDDomainManager domainManager;
 	/**
@@ -67,7 +68,7 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 	 * called, domains for all nodes will be loaded.
 	 * @param entry List of SUID of nodes.
 	 */
-	public void setEntry(List<Long> entry) {this.entry = entry;}
+	public void setEntry(List<CyIdentifiable> entry) {this.entry = entry;}
 
 	@ProvidesTitle
 	public String getTitle() { return "Set Column Values"; }
@@ -97,11 +98,11 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 
 		if (!colName.equals(NOCOL)) {
 			monitor.setStatusMessage("Load CDD Domains");
-			domainManager.loadDomains(monitor, network, colName);
+			domainManager.loadDomains(monitor, network, colName, entry);
 		}
 		if (!pdbColName.equals(NOPDB)) {
 			monitor.setStatusMessage("Loading PDB information");
-			domainManager.loadPDBInfo(monitor, network, pdbColName);
+			domainManager.loadPDBInfo(monitor, network, pdbColName, entry);
 		}
 
 	}

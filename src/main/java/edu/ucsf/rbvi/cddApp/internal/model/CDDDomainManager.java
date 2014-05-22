@@ -139,8 +139,9 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 
 	private void resetIgnoreSelection() {ignoringSelection = false;}
 
-	public void loadDomains(final TaskMonitor monitor, CyNetwork network, String idColumn) {
-		Map<CyIdentifiable, List<String>> idMap = getIdentifiers(network, idColumn);
+	public void loadDomains(final TaskMonitor monitor, CyNetwork network, String idColumn, 
+	                        final List<CyIdentifiable> ids) {
+		Map<CyIdentifiable, List<String>> idMap = getIdentifiers(network, idColumn, ids);
 		if (idMap == null || idMap.size() == 0) return;
 
 		hitMap = new HashMap<CyIdentifiable, List<CDDHit>>();
@@ -324,8 +325,9 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 		return cddChainFeatures;
 	}
 
-	public void loadPDBInfo(final TaskMonitor monitor, final CyNetwork network, String idColumn) {
-		Map<CyIdentifiable, List<String>> idMap = getIdentifiers(network, idColumn);
+	public void loadPDBInfo(final TaskMonitor monitor, final CyNetwork network, String idColumn,
+	                        final List<CyIdentifiable> ids) {
+		Map<CyIdentifiable, List<String>> idMap = getIdentifiers(network, idColumn, ids);
 		if (idMap == null || idMap.size() == 0) return;
 
 		// Get the valid IDs from the PDB
@@ -406,7 +408,9 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 			@Override
 			public String call() throws Exception {
 				try {
+					// monitor.showMessage(TaskMonitor.Level.INFO, "CDD hit query: "+queryString);
 					NetUtils.getHitsFromCDD(queryString, reverseMap, hitMap); // Pass down monitor?
+					monitor.showMessage(TaskMonitor.Level.INFO, "CDD query returned : "+hitMap.size()+" hits");
 				} catch (Exception e) {
 					monitor.showMessage(TaskMonitor.Level.ERROR, "Failed to get hits: "+e.getMessage());
 					return e.getMessage();
@@ -423,7 +427,9 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 			@Override
 			public String call() throws Exception {
 				try {
+					// monitor.showMessage(TaskMonitor.Level.INFO, "CDD feature query: "+queryString);
 					NetUtils.getFeaturesFromCDD(queryString, reverseMap, featureMap); // Pass down monitor?
+					monitor.showMessage(TaskMonitor.Level.INFO, "CDD query returned : "+featureMap.size()+" features");
 				} catch (Exception e) {
 					monitor.showMessage(TaskMonitor.Level.ERROR, "Failed to get features: "+e.getMessage());
 					return e.getMessage();
@@ -437,10 +443,13 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 	 * Fetch ids for each node from the designated column.  This method will take care
 	 * of handling List columns as well as comma-separated lists of strings.
 	 */
-	private Map<CyIdentifiable, List<String>> getIdentifiers(CyNetwork network, String columnName) {
+	private Map<CyIdentifiable, List<String>> getIdentifiers(CyNetwork network, String columnName,
+	                                                         List<CyIdentifiable>cyIds) {
 		Map<CyIdentifiable, List<String>> idMap = new HashMap<CyIdentifiable, List<String>>();
-		List<CyNode> nodes = network.getNodeList();
-		for (CyNode node: nodes) {
+		if (cyIds == null) {
+			cyIds = new ArrayList<CyIdentifiable>(network.getNodeList());
+		}
+		for (CyIdentifiable node: cyIds) {
 			List<String> ids = getIdentifiers(network, node, columnName);
 			if (ids != null && ids.size() > 0)
 				idMap.put(node, ids);
