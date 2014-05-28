@@ -152,11 +152,13 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 		String queryString = NetUtils.buildCDDQuery(reverseMap, idMap);
 		loadCDDInfo(monitor, network, queryString, reverseMap);
 
-		// Update the charts
-		PieChart.updatePieChartColumn(network, hitMap, featureMap);
+		if (hitMap.size() > 0 || featureMap.size() > 0) {
+			// Update the charts
+			PieChart.updatePieChartColumn(network, hitMap, featureMap);
 
-		// Finally, clear our pointer to the PDB column
-		PDBStructure.updatePDBColumn(network, null);
+			// Finally, clear our pointer to the PDB column
+			PDBStructure.updatePDBColumn(network, null);
+		}
 	}
 
 	public void reLoadDomains(CyNetwork network) {
