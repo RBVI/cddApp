@@ -188,8 +188,10 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 				pdbChainMap.put(id, chains);
 		}
 
-		// Update the charts
-		PieChart.updatePieChartColumn(network, hitMap, featureMap);
+		if (hitMap.size() > 0 || featureMap.size() > 0) {
+			// Update the charts
+			PieChart.updatePieChartColumn(network, hitMap, featureMap);
+		}
 	}
 
 	public boolean hasChains(CyIdentifiable identifiable) {
