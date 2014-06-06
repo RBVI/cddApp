@@ -1,6 +1,7 @@
 package edu.ucsf.rbvi.cddApp.internal.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +16,7 @@ import edu.ucsf.rbvi.cddApp.internal.util.CyUtils;
  * CDDHit
  * 
  */
-public class CDDHit {
+public class CDDHit implements Comparable<CDDHit> {
 	final static String CDD_ACCESSION = "CDD-Accession"; // accession number of CDD domain
 	final static String CDD_NAME = "CDD-Name"; // accession number of CDD domain
 	final static String PDB_CHAIN = "PDB-Chain"; // if it is a PDB ID, the chain ID (in the form of PDB ID + chain)
@@ -86,6 +87,84 @@ public class CDDHit {
 		return null;
 	}
 
+	/**
+	 * Remove overlaps in a sorted list.  If the next hit in the list overlaps with the
+	 * end of the previous hit remove it.  If the hits completely overlap, keep the most
+	 * specific hit.
+	 */
+	public static List<CDDHit> removeOverlaps(List<CDDHit> hits) {
+		List<CDDHit> newHits = new ArrayList<CDDHit>();
+		CDDHit lastHit = null;
+		Collections.sort(hits);
+		for (CDDHit hit: hits) {
+			// System.out.println("Looking at "+hit);
+			if (lastHit == null || hit.getFrom() > lastHit.getTo()) {
+				// System.out.println("Adding "+hit);
+				newHits.add(hit);
+				lastHit = hit;
+			} else {
+				// They overlap.  Figure out which one to show.
+				int index = newHits.size()-1;
+				// Is it a complete overlap?
+				if (lastHit.getFrom() == hit.getFrom() && 
+				    lastHit.getTo() == hit.getTo()) {
+					// This one's easy -- show the specific one
+					if (hit.getHitType().equalsIgnoreCase("specific")) {
+						// System.out.println("Updating "+hit);
+						newHits.set(index,hit);
+						lastHit = hit;
+					}
+				} else {
+					// Is the second domain within the first domain?
+					if (hit.getTo() <= lastHit.getTo()) {
+						if (lastHit.getHitType().equalsIgnoreCase("specific") &&
+						    !hit.getHitType().equalsIgnoreCase("specific") &&
+								hit.getTo() == lastHit.getTo()) {
+							continue;
+						}
+						// System.out.println("Splitting "+lastHit.getName());
+						// Yes, insert it and split lastHit
+						CDDHit truncatedHit = new CDDHit(lastHit.getProteinId(),lastHit.getAccession(), lastHit.getName(),
+						                                 lastHit.getHitType(), lastHit.getFrom(), hit.getFrom());
+						// System.out.println("Updating "+truncatedHit);
+						newHits.set(index,truncatedHit);
+						// System.out.println("Adding "+hit);
+						newHits.add(hit);
+						lastHit = hit;
+						if (lastHit.getTo() > hit.getTo()) {
+							truncatedHit = new CDDHit(lastHit.getProteinId(),lastHit.getAccession(), lastHit.getName(),
+							                          lastHit.getHitType(), hit.getTo(), lastHit.getTo());
+							// System.out.println("Adding "+truncatedHit);
+							newHits.add(truncatedHit);
+							lastHit = truncatedHit;
+						}
+						continue;
+					}
+
+					// If one is specific and the second is superfamily, then
+					// show all of the specific domain and the remainder as the
+					// superfamily
+					if (lastHit.getHitType().equalsIgnoreCase("specific")) {
+						CDDHit truncatedHit = new CDDHit(hit.getProteinId(),hit.getAccession(), hit.getName(),
+						                                 hit.getHitType(), lastHit.getTo(), hit.getTo());
+						newHits.add(truncatedHit);
+						// System.out.println("Adding "+truncatedHit);
+					} else {
+						// More complicated.  We need to truncate the first one
+						CDDHit truncatedHit = new CDDHit(lastHit.getProteinId(),lastHit.getAccession(), lastHit.getName(),
+						                                 lastHit.getHitType(), lastHit.getFrom(), hit.getFrom());
+						// System.out.println("Updating "+truncatedHit);
+						newHits.set(index,truncatedHit);
+						// System.out.println("Adding "+hit);
+						newHits.add(hit);
+						lastHit = hit;
+					}
+				}
+			}
+		}
+		return newHits;
+	}
+
 	private static void updateLongColumn(CyNetwork network, CyIdentifiable cyId,
 	                                     String columnName, List<CDDHit> hits) {
 		List<Long> dataList = new ArrayList<Long>();
@@ -143,6 +222,8 @@ public class CDDHit {
 		this.name = record[8];
 		this.from = Integer.parseInt(record[3]);
 		this.to = Integer.parseInt(record[4]);
+
+		// System.out.println("Found hit for:"+this.proteinId+" type = "+this.hitType);
 	}
 
 	public String getProteinId() {
@@ -168,4 +249,18 @@ public class CDDHit {
 	public long getTo() {
 		return to;
 	}
+
+	public int compareTo(CDDHit o) {
+		if (getFrom() == o.getFrom())
+			return 0;
+		else if (getFrom() < o.getFrom())
+			return -1;
+		else
+			return 1;
+	}
+
+	public String toString() {
+		return getHitType()+" domain "+getName()+" for "+getProteinId()+" from "+getFrom()+"-"+getTo();
+	}
+
 }

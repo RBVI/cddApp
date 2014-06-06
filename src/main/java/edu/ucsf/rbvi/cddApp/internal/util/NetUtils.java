@@ -189,7 +189,12 @@ public class NetUtils {
 			for (String proteinId: idList) {
 				query += "&queries="+proteinId;
 				// System.out.println("Adding "+id+" to "+proteinId);
-				reverseMap.put(proteinId, id);
+				if (proteinId.length() > 15) {
+					// CDD truncates IDs to 15 characters on return.
+					reverseMap.put(proteinId.substring(0,15), id);
+				} else {
+					reverseMap.put(proteinId, id);
+				}
 			}
 		}
 		return query;

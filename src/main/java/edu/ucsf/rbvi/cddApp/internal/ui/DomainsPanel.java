@@ -6,6 +6,8 @@ import java.awt.Desktop;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -20,10 +22,13 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.Icon;
+import javax.swing.JCheckBox;
 import javax.swing.JEditorPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
 
@@ -32,13 +37,23 @@ import org.cytoscape.application.swing.CytoPanelComponent;
 import org.cytoscape.application.swing.CytoPanelName;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
+import org.cytoscape.model.CyNode;
 import org.cytoscape.model.CyTable;
 import org.cytoscape.model.events.RowSetRecord;
 import org.cytoscape.model.events.RowsSetEvent;
 import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.util.swing.OpenBrowser;
+import org.cytoscape.view.model.VisualLexicon;
+import org.cytoscape.view.model.VisualProperty;
+import org.cytoscape.view.presentation.RenderingEngineManager;
+import org.cytoscape.view.presentation.customgraphics.CyCustomGraphicsFactory;
+import org.cytoscape.view.vizmap.VisualMappingFunctionFactory;
+import org.cytoscape.view.vizmap.VisualMappingManager;
+import org.cytoscape.view.vizmap.VisualStyle;
+import org.cytoscape.view.vizmap.mappings.PassthroughMapping;
 
 import edu.ucsf.rbvi.cddApp.internal.model.CDDDomainManager;
+import edu.ucsf.rbvi.cddApp.internal.model.PieChart;
 import edu.ucsf.rbvi.cddApp.internal.util.CyUtils;
 
 /**
@@ -47,13 +62,17 @@ import edu.ucsf.rbvi.cddApp.internal.util.CyUtils;
  *
  */
 public class DomainsPanel extends JPanel 
-                          implements CytoPanelComponent, RowsSetListener {
+                          implements CytoPanelComponent, RowsSetListener, ActionListener {
 	
 	final CDDDomainManager domainManager;
 	// private JEditorPane textArea;
 	private JPanel topPanel;
+	private JPanel controlPanel;
 	private JScrollPane scrollPane;
 	private ConcurrentMap<CyIdentifiable, Boolean> selectedNodes;
+	private VisualMappingManager vmm;
+	private VisualMappingFunctionFactory passthroughMapper;
+	private VisualLexicon lex;
 	/**
 	 * 
 	 */
@@ -68,9 +87,31 @@ public class DomainsPanel extends JPanel
 		this.domainManager = manager;
 		setLayout(new BorderLayout());
 		topPanel = new JPanel(new GridBagLayout());
+		controlPanel = createControls();
+		add(controlPanel, BorderLayout.NORTH);
 		scrollPane = new JScrollPane(topPanel);
-		add(scrollPane);
+		add(scrollPane, BorderLayout.CENTER);
 		selectedNodes = new ConcurrentHashMap<CyIdentifiable, Boolean>();
+		vmm = manager.getService(VisualMappingManager.class);
+		passthroughMapper = manager.getService(VisualMappingFunctionFactory.class, "(mapping.type=passthrough)");
+		lex = manager.getService(RenderingEngineManager.class).getDefaultVisualLexicon();
+	}
+
+	public JPanel createControls() {
+		JCheckBox domainCharts = new JCheckBox("Show domain charts");
+		domainCharts.setActionCommand("domain");
+		domainCharts.addActionListener(this);
+		JCheckBox featureCharts = new JCheckBox("Show feature charts");
+		featureCharts.setActionCommand("feature");
+		featureCharts.addActionListener(this);
+		JPanel panel = new JPanel();
+		Border etched = BorderFactory.createEtchedBorder();
+		Border title = BorderFactory.createTitledBorder(etched, "Pie Chart Controls", TitledBorder.LEFT, TitledBorder.TOP);
+		panel.setBorder(title);
+		panel.add(domainCharts);
+		panel.add(featureCharts);
+		return panel;
+
 	}
 
 	public void handleEvent(RowsSetEvent arg0) {
@@ -119,6 +160,33 @@ public class DomainsPanel extends JPanel
 		c.weighty = 1.0;
 		topPanel.add(new JPanel(),c);
 		} catch (Exception e){e.printStackTrace();}
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		// Get the current visual style
+		VisualStyle style = vmm.getVisualStyle(domainManager.getCurrentNetworkView());
+
+		String command = e.getActionCommand();
+		String column = PieChart.FEATURE_CHART;
+		String property = "NODE_CUSTOMGRAPHICS_1";
+		if (command.equals("domain")) {
+			column = PieChart.DOMAIN_CHART;
+			property = "NODE_CUSTOMGRAPHICS_2";
+		}
+
+		// Get the appropriate property
+		VisualProperty cgl = lex.lookup(CyNode.class, property);
+
+		if (((JCheckBox)e.getSource()).isSelected()) {
+			// Activate the appropriate pie chart
+			PassthroughMapping pMapping = 
+				(PassthroughMapping) passthroughMapper.createVisualMappingFunction(column, String.class, cgl);
+			style.addVisualMappingFunction(pMapping);
+		} else {
+			// De-activate the appropriate pie chart
+			style.removeVisualMappingFunction(cgl);
+		}
+		style.apply(domainManager.getCurrentNetworkView());
 	}
 
 	public Component getComponent() {

@@ -227,8 +227,10 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 		if (structChains != null)
 			summary += "has "+structChains.size()+" structures and "+
 			           PDBStructure.countUniqueChains(structChains)+" chains";
-		else
+		else if (cddFeatures != null && cddFeatures.size() > 0)
 			summary += " has "+cddHits.size()+" domains with "+cddFeatures.size()+" features";
+		else
+			summary += " has "+cddHits.size()+" domains";
 		return summary;
 	}
 
@@ -259,7 +261,7 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 	public List<CDDHit> getHits(CyIdentifiable identifiable) {
 		if (hitMap != null && hitMap.containsKey(identifiable))
 			return hitMap.get(identifiable);
-		return null;
+		return new ArrayList<CDDHit>();
 	}
 
 	/**
@@ -269,7 +271,7 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 		List<CDDHit> cddHits = getHits(identifiable);
 		if (cddHits == null || !pdbChainMap.containsKey(identifiable) ||
 				PDBStructure.getStructure(pdbChainMap.get(identifiable), chain) == null)
-			return null;
+			return new ArrayList<CDDHit>();
 
 		List<CDDHit> cddChainHits = new ArrayList<CDDHit>();
 		for (CDDHit hit: cddHits) {
@@ -297,7 +299,7 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 	public List<CDDFeature> getFeatures(CyIdentifiable identifiable) {
 		if (featureMap != null && featureMap.containsKey(identifiable))
 			return featureMap.get(identifiable);
-		return null;
+		return new ArrayList<CDDFeature>();
 	}
 
 	/**
@@ -319,7 +321,7 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 		List<CDDFeature> cddFeatures = getFeatures(identifiable);
 		if (cddFeatures == null || !pdbChainMap.containsKey(identifiable) ||
 				PDBStructure.getStructure(pdbChainMap.get(identifiable), chain) == null)
-			return null;
+			return new ArrayList<CDDFeature>();
 
 		List<CDDFeature> cddChainFeatures = new ArrayList<CDDFeature>();
 		for (CDDFeature feature: cddFeatures) {
