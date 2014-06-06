@@ -132,7 +132,7 @@ public class DomainsPanel extends JPanel
 		for (RowSetRecord r: record) {
 			CyIdentifiable cyId = CyUtils.getIdentifiable(network, r.getRow().get(CyNetwork.SUID, Long.class));
 
-			if (domainManager.getHits(cyId)!=null)
+			if (domainManager.getHits(cyId)!=null || domainManager.getHits(cyId).size() == 0)
 				selectedNodes.put(cyId,r.getRow().get(CyNetwork.SELECTED, Boolean.class));
 		}
 
