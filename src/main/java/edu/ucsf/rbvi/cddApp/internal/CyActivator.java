@@ -29,8 +29,11 @@ import org.slf4j.LoggerFactory;
 import edu.ucsf.rbvi.cddApp.internal.model.CDDDomainManager;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNetworkViewTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainNodeViewTaskFactory;
+import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainsCommandTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainTaskFactory;
-// import edu.ucsf.rbvi.cddApp.internal.tasks.StructurePanelTaskFactory;
+import edu.ucsf.rbvi.cddApp.internal.tasks.ShowCDDDomainTaskFactory;
+import edu.ucsf.rbvi.cddApp.internal.tasks.ShowDomainChartsTaskFactory;
+import edu.ucsf.rbvi.cddApp.internal.tasks.UnselectCDDDomainTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.ui.DomainsPanel;
 
 public class CyActivator extends AbstractCyActivator {
@@ -67,66 +70,57 @@ public class CyActivator extends AbstractCyActivator {
 		Properties settingsProps = new Properties();
 		settingsProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
 		settingsProps.setProperty(TITLE, "Load CDD Domains for Network");
-		settingsProps.setProperty(COMMAND, "loadCDDDomains4network");
-		settingsProps.setProperty(COMMAND_NAMESPACE, "cddApp");
 		settingsProps.setProperty(IN_MENU_BAR, "true");
 		settingsProps.setProperty(MENU_GRAVITY, "1.0");
 		registerService(bc, loadCDDDomain, NetworkTaskFactory.class, settingsProps);
-
-		LoadCDDDomainNodeViewTaskFactory loadCDDDomainNodeView = new LoadCDDDomainNodeViewTaskFactory(manager);
-		Properties nodeViewProps = new Properties();
-		nodeViewProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
-		nodeViewProps.setProperty(TITLE, "Load CDD Domains for Node");
-		nodeViewProps.setProperty(COMMAND, "loadCDDDomains4node");
-		nodeViewProps.setProperty(COMMAND_NAMESPACE, "cddApp");
-		nodeViewProps.setProperty(IN_MENU_BAR, "true");
-		nodeViewProps.setProperty(MENU_GRAVITY, "2.0");
-		registerService(bc, loadCDDDomainNodeView, NodeViewTaskFactory.class, nodeViewProps);
 		
-		LoadCDDDomainNetworkViewTaskFactory loadCDDDomainNetworkView = new LoadCDDDomainNetworkViewTaskFactory(manager);
+		LoadCDDDomainNetworkViewTaskFactory loadCDDDomainNetworkView = 
+			new LoadCDDDomainNetworkViewTaskFactory(manager);
 		Properties networkViewProps = new Properties();
 		networkViewProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
 		networkViewProps.setProperty(TITLE, "Load CDD Domains for selected Node(s)");
-		networkViewProps.setProperty(COMMAND, "loadCDDDomains4selectedNodes");
-		networkViewProps.setProperty(COMMAND_NAMESPACE, "cddApp");
 		networkViewProps.setProperty(IN_MENU_BAR, "true");
-		networkViewProps.setProperty(MENU_GRAVITY, "1.0");
+		networkViewProps.setProperty(MENU_GRAVITY, "2.0");
 		registerService(bc, loadCDDDomainNetworkView, NetworkViewTaskFactory.class, networkViewProps);
-		
-	/*	HighlightDomainTaskFactory highlightDomain = new HighlightDomainTaskFactory(bc);
-		Properties openStrucProps = new Properties();
-		openStrucProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
-		openStrucProps.setProperty(TITLE, "Highlight Domain");
-		openStrucProps.setProperty(COMMAND, "highlightDomain");
-		openStrucProps.setProperty(COMMAND_NAMESPACE, "cddApp");
-		openStrucProps.setProperty(IN_MENU_BAR, "true");
-		openStrucProps.setProperty(MENU_GRAVITY, "3.0");
-		registerService(bc, highlightDomain, NetworkViewTaskFactory.class, openStrucProps);
-		registerService(bc, highlightDomain, NodeViewTaskFactory.class, openStrucProps);
-		
-		HighlightSitesTaskFactory highlightSites = new HighlightSitesTaskFactory(bc);
-		Properties highlightSitesProps = new Properties();
-		highlightSitesProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
-		highlightSitesProps.setProperty(TITLE, "Highlight Site");
-		highlightSitesProps.setProperty(COMMAND, "highlightSite");
-		highlightSitesProps.setProperty(COMMAND_NAMESPACE, "cddApp");
-		highlightSitesProps.setProperty(IN_MENU_BAR, "true");
-		highlightSitesProps.setProperty(MENU_GRAVITY, "4.0");
-		registerService(bc, highlightSites, NetworkViewTaskFactory.class, highlightSitesProps);
-		registerService(bc, highlightSites, NodeViewTaskFactory.class, highlightSitesProps); */
+
+		LoadCDDDomainNodeViewTaskFactory loadCDDDomainNodeView = 
+			new LoadCDDDomainNodeViewTaskFactory(manager);
+		Properties nodeViewProps = new Properties();
+		nodeViewProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
+		nodeViewProps.setProperty(TITLE, "Load CDD Domains for Node");
+		nodeViewProps.setProperty(MENU_GRAVITY, "1.0");
+		registerService(bc, loadCDDDomainNodeView, NodeViewTaskFactory.class, nodeViewProps);
+
+		// Commands
+		Properties loadProps = new Properties();
+		loadProps.setProperty(COMMAND_NAMESPACE, "cdd");
+		loadProps.setProperty(COMMAND, "load");
+		LoadCDDDomainsCommandTaskFactory loadTaskFactory = 
+			new LoadCDDDomainsCommandTaskFactory(manager);
+		registerService(bc, loadTaskFactory, TaskFactory.class, loadProps);
+
+		//
+		Properties selectProps = new Properties();
+		selectProps.setProperty(COMMAND_NAMESPACE, "cdd");
+		selectProps.setProperty(COMMAND, "select"); //network=, nodeList=, chains=, domains=, sites=
+		ShowCDDDomainTaskFactory selectTaskFactory = new ShowCDDDomainTaskFactory(manager);
+		registerService(bc, selectTaskFactory, TaskFactory.class, selectProps);
+
+		//
+		Properties showProps = new Properties();
+		showProps.setProperty(COMMAND_NAMESPACE, "cdd");
+		showProps.setProperty(COMMAND, "show charts"); //network=, domains=, features=
+		ShowDomainChartsTaskFactory showTaskFactory = new ShowDomainChartsTaskFactory(manager);
+		registerService(bc, showTaskFactory, TaskFactory.class, showProps);
+
+		//
+		Properties unselectProps = new Properties();
+		unselectProps.setProperty(COMMAND_NAMESPACE, "cdd");
+		unselectProps.setProperty(COMMAND, "unselect"); //network=, nodeList=, chains=, domains=, sites=
+		UnselectCDDDomainTaskFactory unselectTaskFactory = new UnselectCDDDomainTaskFactory(manager);
+		registerService(bc, unselectTaskFactory, TaskFactory.class, unselectProps);
+
 		if (haveGUI) {
-/*
-			StructurePanelTaskFactory structurePanel = new StructurePanelTaskFactory(manager);
-			Properties structurePanelProps = new Properties();
-			structurePanelProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
-			structurePanelProps.setProperty(TITLE, "Open Structure Panel");
-			structurePanelProps.setProperty(COMMAND, "structurePanel");
-			structurePanelProps.setProperty(COMMAND_NAMESPACE, "cddApp");
-			structurePanelProps.setProperty(IN_MENU_BAR, "true");
-			structurePanelProps.setProperty(MENU_GRAVITY, "5.0");
-			registerService(bc, structurePanel, TaskFactory.class, structurePanelProps);
-*/
-			
 			DomainsPanel domainsPanel = new DomainsPanel(manager);
 			registerService(bc, domainsPanel, CytoPanelComponent.class, new Properties());
 			registerService(bc, domainsPanel, RowsSetListener.class, new Properties());

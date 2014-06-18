@@ -11,11 +11,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.cytoscape.command.util.NodeList;
 import org.cytoscape.model.CyColumn;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyTable;
-import org.cytoscape.task.AbstractNetworkTask;
+import org.cytoscape.work.AbstractTask;
 import org.cytoscape.work.ProvidesTitle;
 import org.cytoscape.work.TaskMonitor;
 import org.cytoscape.work.Tunable;
@@ -23,26 +24,49 @@ import org.cytoscape.work.util.ListSingleSelection;
 
 import edu.ucsf.rbvi.cddApp.internal.model.CDDDomainManager;
 
-public class LoadCDDDomainTask extends AbstractNetworkTask {
-	public static String NOCOL = "--None (use PDB IDs only) --";
-	public static String NOPDB = "--None (no PDB IDs) --";
+public class LoadCDDDomainTask extends AbstractTask {
+	public static String NOCOL = "-- None (use PDB IDs only) --";
+	public static String NOPDB = "-- None (no PDB IDs) --";
 	
 	@Tunable(description="Choose column containing primary identifier")
-	public ListSingleSelection<String> loadColumn; // Column to load
+	public ListSingleSelection<String> idColumn; // Column to load
 	@Tunable(description="Choose column containing PDB id")
 	public ListSingleSelection<String> pdbColumn; // Column to load
 	private CyTable table;
-	private CyNetwork network;
+	@Tunable(description="Network to annotate with CDD information", context="nogui")
+	public CyNetwork network;
+
+	public NodeList nodeList = new NodeList(null);
+	@Tunable(description="Nodes to annotate with CDD information", context="nogui")
+	public NodeList getnodeList() {
+		if (network == null) {
+			network = domainManager.getCurrentNetwork();
+		}
+		nodeList.setNetwork(network);
+		return nodeList;
+	}
+
+	public void setnodeList(NodeList setValue) {
+	}
+
+
 	private List<CyIdentifiable> entry = null;
-	private Pattern pattern;
 	final CDDDomainManager domainManager;
+
 	/**
 	 * Constructor for loading CDD Domain from the CDD website.
-	 * @param network CyNetwork to load the domain.
+	 * @param net CyNetwork to load the domain.
+	 * @param manager The CDD Domain manager
 	 */
-	public LoadCDDDomainTask(CyNetwork network, CDDDomainManager manager) {
-		super(network);
+	public LoadCDDDomainTask(CyNetwork net, CDDDomainManager manager) {
+		super();
 		this.domainManager = manager;
+
+		if (net != null)
+			this.network = net;
+		else
+			this.network = domainManager.getCurrentNetwork();
+
 		this.table = network.getDefaultNodeTable();
 		ArrayList<String> columns = new ArrayList<String>();
 		columns.add(NOCOL);
@@ -56,11 +80,10 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 			    (c.getType().equals(List.class) && c.getListElementType().equals(String.class)))
 				pdbColumns.add(c.getName());
 		}
-		loadColumn = new ListSingleSelection<String>(columns);
-		loadColumn.setSelectedValue(CyNetwork.NAME);
+		idColumn = new ListSingleSelection<String>(columns);
+		idColumn.setSelectedValue(CyNetwork.NAME);
 		pdbColumn = new ListSingleSelection<String>(pdbColumns);
-		this.network = network;
-		pattern = Pattern.compile("(gi)(\\d+)");
+
 	}
 
 	/**
@@ -93,7 +116,10 @@ public class LoadCDDDomainTask extends AbstractNetworkTask {
 	@Override
 	public void run(TaskMonitor monitor) throws Exception {
 		monitor.setTitle("Load CDD Domains");
-		String queries = null, pdbQueries = null, colName = loadColumn.getSelectedValue();
+		if (network == null)
+			network = domainManager.getCurrentNetwork();
+
+		String queries = null, pdbQueries = null, colName = idColumn.getSelectedValue();
 		String pdbColName = pdbColumn.getSelectedValue();
 
 		if (!colName.equals(NOCOL)) {

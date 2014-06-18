@@ -41,12 +41,13 @@ public class StructureHandler implements TaskObserver {
 	static String NAMESPACE = "structureViz";
 
 	// StructureViz commands
-	static String LAUNCH = "launchChimera";
-	static String OPENCOMMAND = "openStructuresNodes";
-	static String SENDCOMMAND = "sendCommand";
+	static String LAUNCH = "launch";
+	static String OPENCOMMAND = "open";
+	static String SENDCOMMAND = "send";
 
 	// Arguments
-	static String STRUCTURE_T = "structureTunable";
+	static String STRUCTURE_T = "pdbID";
+	static String NODE_T = "nodeList";
 	static String COMMAND = "command";
 
 	// Chimera commands
@@ -82,7 +83,8 @@ public class StructureHandler implements TaskObserver {
 		// Nope, load it
 		Map<String, Object> args = new HashMap<String, Object>();
 		String[] structChain = structure.split("\\.");
-		args.put(STRUCTURE_T, node+"|"+structChain[0]);
+		args.put(STRUCTURE_T, structChain[0]);
+		// args.put(NODE_T, node);
 		execute(OPENCOMMAND, args);
 
 		// Now, update our map of structures to models
@@ -97,11 +99,13 @@ public class StructureHandler implements TaskObserver {
 		// Chain is of the form structure.chainId and selectionString
 		// should either a comma-separated list of residues or a 
 		// residue range
+		System.out.println("select = "+selectionString);
 		String str = buildSelectionString(chain, selectionString);
 		if (str != null) {
 			String selString = str;
 			for (String s: selectionMap.values())
 				selString += "|"+s;
+			System.out.println("Sending "+SELECT+" "+selString+" to chimera");
 			sendCommand(SELECT+" "+ selString);
 			selectionMap.put(chain+" "+selectionString, str);
 		}
@@ -120,6 +124,7 @@ public class StructureHandler implements TaskObserver {
 			String selString = "";
 			for (String s: selectionMap.values())
 				selString += "|"+s;
+			System.out.println("Sending "+SELECT+" "+selString.substring(1)+" to chimera");
 			sendCommand(SELECT+" "+ selString.substring(1));
 		}
 	}
@@ -146,6 +151,7 @@ public class StructureHandler implements TaskObserver {
 		List<String> residueList = sendCommand(LISTRESIDUES+spec);
 		int firstResidue = residueList.size();
 		for (String line: residueList) {
+			System.out.println("From chimera: "+line);
 			Matcher m = p.matcher(line);
 			if (m.find()) {
 				int res = Integer.parseInt(m.group(2));
@@ -153,7 +159,7 @@ public class StructureHandler implements TaskObserver {
 					firstResidue = res;
 			}
 		}
-		// System.out.println("First residue for "+structure+" is "+firstResidue);
+		System.out.println("First residue for "+structure+" is "+firstResidue);
 		chainToFirstResidueMap.put(structure, firstResidue); // structure includes chain!
 	}
 
@@ -229,14 +235,14 @@ public class StructureHandler implements TaskObserver {
 	}
 
 	private String convertResidueNumber(String structure, String residueNumber) {
-		// System.out.println("Converting residue number "+residueNumber+" for structure "+structure);
+		System.out.println("Converting residue number "+residueNumber+" for structure "+structure);
 		if (!chainToFirstResidueMap.containsKey(structure))
 			return residueNumber;
 
 		int firstResidue = chainToFirstResidueMap.get(structure);
-		// System.out.println("Converting residue number, firstResidue = "+firstResidue);
+		System.out.println("Converting residue number, firstResidue = "+firstResidue);
 		int residue = Integer.parseInt(residueNumber);
-		// System.out.println("Converted residue number="+(residue+firstResidue-1));
+		System.out.println("Converted residue number="+(residue+firstResidue-1));
 		return Integer.toString(residue+firstResidue-1);
 	}
 

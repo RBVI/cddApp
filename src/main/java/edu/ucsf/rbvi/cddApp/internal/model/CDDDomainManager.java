@@ -256,6 +256,13 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 	}
 
 	/**
+	 * Returns the map of nodes to domains
+	 */
+	public Map<CyIdentifiable, List<CDDHit>> getHitMap() {
+		return hitMap;
+	}
+
+	/**
 	 * Returns all of the hits for this node
 	 */
 	public List<CDDHit> getHits(CyIdentifiable identifiable) {
@@ -282,15 +289,10 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 	}
 
 	/**
-	 * Returns all of the unique hits for this node.  This routine will
-	 * first check to see if we have multiple PDBs and/or multiple chains
-	 * and find all of the hits which aren't simple duplicates.
+	 * Returns the map of nodes to features
 	 */
-	public List<CDDHit> getUniqueHits(CyIdentifiable identifiable) {
-		if (pdbChainMap != null && !pdbChainMap.containsKey(identifiable))
-			return getHits(identifiable);
-		// TODO: fixme
-		return getHits(identifiable);
+	public Map<CyIdentifiable, List<CDDFeature>> getFeatureMap() {
+		return featureMap;
 	}
 
 	/**
@@ -300,18 +302,6 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 		if (featureMap != null && featureMap.containsKey(identifiable))
 			return featureMap.get(identifiable);
 		return new ArrayList<CDDFeature>();
-	}
-
-	/**
-	 * Returns all of the unique features for this node.  This routine will
-	 * first check to see if we have multiple PDBs and/or multiple chains
-	 * and find all of the hits which aren't simple duplicates.
-	 */
-	public List<CDDFeature> getUniqueFeatures(CyIdentifiable identifiable) {
-		if (!pdbChainMap.containsKey(identifiable))
-			return getFeatures(identifiable);
-		// TODO: fixme
-		return getFeatures(identifiable);
 	}
 
 	/**
@@ -329,6 +319,13 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 				cddChainFeatures.add(feature);
 		}
 		return cddChainFeatures;
+	}
+
+	/**
+	 * Returns the map of nodes to chains
+	 */
+	public Map<CyIdentifiable, List<PDBStructure>> getChainMap() {
+		return pdbChainMap;
 	}
 
 	public void loadPDBInfo(final TaskMonitor monitor, final CyNetwork network, String idColumn,
