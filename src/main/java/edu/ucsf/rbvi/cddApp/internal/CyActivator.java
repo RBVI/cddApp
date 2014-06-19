@@ -1,6 +1,8 @@
 package edu.ucsf.rbvi.cddApp.internal;
 
 import static org.cytoscape.work.ServiceProperties.COMMAND;
+// Commented out until 3.2 is released
+// import static org.cytoscape.work.ServiceProperties.COMMAND_DESCRIPTION;
 import static org.cytoscape.work.ServiceProperties.COMMAND_NAMESPACE;
 import static org.cytoscape.work.ServiceProperties.IN_MENU_BAR;
 import static org.cytoscape.work.ServiceProperties.MENU_GRAVITY;
@@ -37,6 +39,7 @@ import edu.ucsf.rbvi.cddApp.internal.tasks.UnselectCDDDomainTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.ui.DomainsPanel;
 
 public class CyActivator extends AbstractCyActivator {
+	static String COMMAND_DESCRIPTION = "commandDescription";
 	private static Logger logger = LoggerFactory
 			.getLogger(edu.ucsf.rbvi.cddApp.internal.CyActivator.class);
 
@@ -95,6 +98,8 @@ public class CyActivator extends AbstractCyActivator {
 		Properties loadProps = new Properties();
 		loadProps.setProperty(COMMAND_NAMESPACE, "cdd");
 		loadProps.setProperty(COMMAND, "load");
+		loadProps.setProperty(COMMAND_DESCRIPTION, 
+		                      "Annotate a network with CDD information");
 		LoadCDDDomainsCommandTaskFactory loadTaskFactory = 
 			new LoadCDDDomainsCommandTaskFactory(manager);
 		registerService(bc, loadTaskFactory, TaskFactory.class, loadProps);
@@ -103,6 +108,8 @@ public class CyActivator extends AbstractCyActivator {
 		Properties selectProps = new Properties();
 		selectProps.setProperty(COMMAND_NAMESPACE, "cdd");
 		selectProps.setProperty(COMMAND, "select"); //network=, nodeList=, chains=, domains=, sites=
+		selectProps.setProperty(COMMAND_DESCRIPTION, 
+		                        "Show the structure and select the domains or features");
 		ShowCDDDomainTaskFactory selectTaskFactory = new ShowCDDDomainTaskFactory(manager);
 		registerService(bc, selectTaskFactory, TaskFactory.class, selectProps);
 
@@ -110,6 +117,8 @@ public class CyActivator extends AbstractCyActivator {
 		Properties showProps = new Properties();
 		showProps.setProperty(COMMAND_NAMESPACE, "cdd");
 		showProps.setProperty(COMMAND, "show charts"); //network=, domains=, features=
+		showProps.setProperty(COMMAND_DESCRIPTION, 
+		                      "Show the pie charts for domains or features");
 		ShowDomainChartsTaskFactory showTaskFactory = new ShowDomainChartsTaskFactory(manager);
 		registerService(bc, showTaskFactory, TaskFactory.class, showProps);
 
@@ -117,6 +126,8 @@ public class CyActivator extends AbstractCyActivator {
 		Properties unselectProps = new Properties();
 		unselectProps.setProperty(COMMAND_NAMESPACE, "cdd");
 		unselectProps.setProperty(COMMAND, "unselect"); //network=, nodeList=, chains=, domains=, sites=
+		unselectProps.setProperty(COMMAND_DESCRIPTION, 
+		                          "Unselect domains or features in the structure");
 		UnselectCDDDomainTaskFactory unselectTaskFactory = new UnselectCDDDomainTaskFactory(manager);
 		registerService(bc, unselectTaskFactory, TaskFactory.class, unselectProps);
 
