@@ -33,6 +33,7 @@ public class StructureHandler implements TaskObserver {
 	SynchronousTaskManager taskManager;
 	Map<String, String> structureToModelMap;
 	Map<String, Integer> chainToFirstResidueMap;
+	Map<String, Map<Integer, String>> chainToSequenceNumberMap;
 	Map<String, String> selectionMap;
 	String currentCommand = null;
 	String commandResults = null;
@@ -63,6 +64,7 @@ public class StructureHandler implements TaskObserver {
 		this.taskManager = domainManager.getService(SynchronousTaskManager.class);
 		structureToModelMap = new HashMap<String, String>();
 		chainToFirstResidueMap = new HashMap<String, Integer>();
+		chainToSequenceNumberMap = new HashMap<String, Map<Integer, String>>();
 		selectionMap = new HashMap<String, String>();
 	}
 
@@ -99,13 +101,13 @@ public class StructureHandler implements TaskObserver {
 		// Chain is of the form structure.chainId and selectionString
 		// should either a comma-separated list of residues or a 
 		// residue range
-		System.out.println("select = "+selectionString);
+		// System.out.println("select = "+selectionString);
 		String str = buildSelectionString(chain, selectionString);
 		if (str != null) {
 			String selString = str;
 			for (String s: selectionMap.values())
 				selString += "|"+s;
-			System.out.println("Sending "+SELECT+" "+selString+" to chimera");
+			// System.out.println("Sending "+SELECT+" "+selString+" to chimera");
 			sendCommand(SELECT+" "+ selString);
 			selectionMap.put(chain+" "+selectionString, str);
 		}
@@ -124,7 +126,7 @@ public class StructureHandler implements TaskObserver {
 			String selString = "";
 			for (String s: selectionMap.values())
 				selString += "|"+s;
-			System.out.println("Sending "+SELECT+" "+selString.substring(1)+" to chimera");
+			// System.out.println("Sending "+SELECT+" "+selString.substring(1)+" to chimera");
 			sendCommand(SELECT+" "+ selString.substring(1));
 		}
 	}
@@ -147,19 +149,33 @@ public class StructureHandler implements TaskObserver {
 		String model = structureToModelMap.get(getStructure(structure));
 		String chain = getChain(structure);
 		String spec = " #"+model+":."+chain;
-		Pattern p = Pattern.compile("residue id #(\\d+):(\\d+)");
+		Map<Integer, String> sequenceNumberMap = new HashMap<Integer, String>();
+		// Pattern p = Pattern.compile("residue id #(\\d+):(\\d*[A-Z]?)(\\.?[A-Z]*) type ([A-Z][A-Z][A-Z]) (?<seqnum>\\d*)");
+		Pattern p = Pattern.compile("residue id #(\\d+):(\\d*)(?<insertion>[A-Z]?)(?<chain>\\.?[0-9A-Za-z]*) type ([A-Z][A-Z][A-Z])( index )?(?<seqnum>\\d*)");
 		List<String> residueList = sendCommand(LISTRESIDUES+spec);
 		int firstResidue = residueList.size();
 		for (String line: residueList) {
-			System.out.println("From chimera: "+line);
 			Matcher m = p.matcher(line);
+			// System.out.println("From Chimera: "+line);
 			if (m.find()) {
-				int res = Integer.parseInt(m.group(2));
-				if (res < firstResidue)
-					firstResidue = res;
+				if (m.group("seqnum") != null && m.group("seqnum").length() > 0) {
+					int seqNumber = Integer.parseInt(m.group("seqnum"));
+					// System.out.println("Found seqnum: "+seqNumber);
+					if (m.group("insertion") != null && m.group("insertion").length() > 0)
+						sequenceNumberMap.put(seqNumber, m.group(2)+m.group("insertion"));
+					else
+						sequenceNumberMap.put(seqNumber, m.group(2));
+				} else {
+					// TODO: Handle insertion codes!
+					int res = Integer.parseInt(m.group(2));
+					if (res < firstResidue)
+						firstResidue = res;
+				}
 			}
 		}
-		System.out.println("First residue for "+structure+" is "+firstResidue);
+		if (sequenceNumberMap.size() > 0)
+			chainToSequenceNumberMap.put(structure, sequenceNumberMap);
+		// System.out.println("First residue for "+structure+" is "+firstResidue);
 		chainToFirstResidueMap.put(structure, firstResidue); // structure includes chain!
 	}
 
@@ -235,24 +251,35 @@ public class StructureHandler implements TaskObserver {
 	}
 
 	private String convertResidueNumber(String structure, String residueNumber) {
-		System.out.println("Converting residue number "+residueNumber+" for structure "+structure);
+		// System.out.println("Converting residue number "+residueNumber+" for structure "+structure);
+		// See if we have the actual index (best case)
+		if (chainToSequenceNumberMap.containsKey(structure)) {
+			// Sweet -- we have the new Chimera!  Use our map
+			return chainToSequenceNumberMap.get(structure).get(Integer.parseInt(residueNumber));
+		}
+
 		if (!chainToFirstResidueMap.containsKey(structure))
 			return residueNumber;
 
 		int firstResidue = chainToFirstResidueMap.get(structure);
-		System.out.println("Converting residue number, firstResidue = "+firstResidue);
+		// System.out.println("Converting residue number, firstResidue = "+firstResidue);
 		int residue = Integer.parseInt(residueNumber);
-		System.out.println("Converted residue number="+(residue+firstResidue-1));
+		// System.out.println("Converted residue number="+(residue+firstResidue-1));
 		return Integer.toString(residue+firstResidue-1);
 	}
 
 	private String convertResidue(String structure, String site) {
+		String residue = site.substring(0,1); // NOTE: assumes single letter AA designation
+		int residueNumber = Integer.parseInt(site.substring(1));
+		if (chainToSequenceNumberMap.containsKey(structure)) {
+			// Sweet -- we have the new Chimera!  Use our map
+			return chainToSequenceNumberMap.get(structure).get(residueNumber);
+		}
+
 		if (!chainToFirstResidueMap.containsKey(structure))
 			return site;
 
 		int firstResidue = chainToFirstResidueMap.get(structure);
-		String residue = site.substring(0,1); // NOTE: assumes single letter AA designation
-		int residueNumber = Integer.parseInt(site.substring(1));
 		return Integer.toString(residueNumber+firstResidue-1);
 	}
 }
