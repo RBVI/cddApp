@@ -14,8 +14,6 @@ import java.util.Properties;
 import org.cytoscape.application.CyApplicationManager;
 import org.cytoscape.application.events.SetCurrentNetworkListener;
 import org.cytoscape.application.swing.CySwingApplication;
-import org.cytoscape.application.swing.CytoPanelComponent;
-import org.cytoscape.model.events.RowsSetListener;
 import org.cytoscape.service.util.AbstractCyActivator;
 import org.cytoscape.service.util.CyServiceRegistrar;
 import org.cytoscape.task.NetworkTaskFactory;
@@ -35,8 +33,8 @@ import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainsCommandTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.ShowCDDDomainTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.ShowDomainChartsTaskFactory;
+import edu.ucsf.rbvi.cddApp.internal.tasks.ShowDomainsPanelTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.UnselectCDDDomainTaskFactory;
-import edu.ucsf.rbvi.cddApp.internal.ui.DomainsPanel;
 
 public class CyActivator extends AbstractCyActivator {
 	static String COMMAND_DESCRIPTION = "commandDescription";
@@ -94,6 +92,34 @@ public class CyActivator extends AbstractCyActivator {
 		nodeViewProps.setProperty(MENU_GRAVITY, "1.0");
 		registerService(bc, loadCDDDomainNodeView, NodeViewTaskFactory.class, nodeViewProps);
 
+		if (haveGUI) {
+			ShowDomainsPanelTaskFactory showPanel = 
+				new ShowDomainsPanelTaskFactory(manager, true);
+			Properties showPanelProps = new Properties();
+			showPanelProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
+			showPanelProps.setProperty(TITLE, "Show CDD Domain Panel");
+			showPanelProps.setProperty(IN_MENU_BAR, "true");
+			showPanelProps.setProperty(MENU_GRAVITY, "3.0");
+			showPanelProps.setProperty(COMMAND_NAMESPACE, "cdd");
+			showPanelProps.setProperty(COMMAND, "show panel");
+			showPanelProps.setProperty(COMMAND_DESCRIPTION, 
+		                          "Show the CDD Domain Panel");
+			registerService(bc, showPanel, TaskFactory.class, showPanelProps);
+
+			ShowDomainsPanelTaskFactory hidePanel = 
+				new ShowDomainsPanelTaskFactory(manager, false);
+			Properties hidePanelProps = new Properties();
+			hidePanelProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
+			hidePanelProps.setProperty(TITLE, "Hide CDD Domain Panel");
+			hidePanelProps.setProperty(IN_MENU_BAR, "true");
+			hidePanelProps.setProperty(MENU_GRAVITY, "4.0");
+			hidePanelProps.setProperty(COMMAND_NAMESPACE, "cdd");
+			hidePanelProps.setProperty(COMMAND, "hide panel");
+			hidePanelProps.setProperty(COMMAND_DESCRIPTION, 
+		                          "Hide the CDD Domain Panel");
+			registerService(bc, hidePanel, TaskFactory.class, hidePanelProps);
+		}
+
 		// Commands
 		Properties loadProps = new Properties();
 		loadProps.setProperty(COMMAND_NAMESPACE, "cdd");
@@ -131,10 +157,5 @@ public class CyActivator extends AbstractCyActivator {
 		UnselectCDDDomainTaskFactory unselectTaskFactory = new UnselectCDDDomainTaskFactory(manager);
 		registerService(bc, unselectTaskFactory, TaskFactory.class, unselectProps);
 
-		if (haveGUI) {
-			DomainsPanel domainsPanel = new DomainsPanel(manager);
-			registerService(bc, domainsPanel, CytoPanelComponent.class, new Properties());
-			registerService(bc, domainsPanel, RowsSetListener.class, new Properties());
-		}
 	}
 }

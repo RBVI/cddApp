@@ -150,8 +150,8 @@ public class StructureHandler implements TaskObserver {
 		String chain = getChain(structure);
 		String spec = " #"+model+":."+chain;
 		Map<Integer, String> sequenceNumberMap = new HashMap<Integer, String>();
-		// Pattern p = Pattern.compile("residue id #(\\d+):(\\d*[A-Z]?)(\\.?[A-Z]*) type ([A-Z][A-Z][A-Z]) (?<seqnum>\\d*)");
-		Pattern p = Pattern.compile("residue id #(\\d+):(\\d*)(?<insertion>[A-Z]?)(?<chain>\\.?[0-9A-Za-z]*) type ([A-Z][A-Z][A-Z])( index )?(?<seqnum>\\d*)");
+		// This requires Java 7
+		/* Pattern p = Pattern.compile("residue id #(\\d+):(\\d*)(?<insertion>[A-Z]?)(?<chain>\\.?[0-9A-Za-z]*) type ([A-Z][A-Z][A-Z])( index )?(?<seqnum>\\d*)");
 		List<String> residueList = sendCommand(LISTRESIDUES+spec);
 		int firstResidue = residueList.size();
 		for (String line: residueList) {
@@ -170,6 +170,27 @@ public class StructureHandler implements TaskObserver {
 					int res = Integer.parseInt(m.group(2));
 					if (res < firstResidue)
 						firstResidue = res;
+				}
+			}
+		}
+		*/
+		// Java 6 version
+		Pattern p = Pattern.compile("residue id #(\\d+):(\\d*)([A-Z])?(\\.?[0-9A-Za-z]*)? type ([A-Z]{3})( index )?(\\d*)?");
+		List<String> residueList = sendCommand(LISTRESIDUES+spec);
+		int firstResidue = residueList.size();
+		for (String line: residueList) {
+			Matcher m = p.matcher(line);
+			if (m.find()) {
+				if (m.group(7) != null && m.group(7).length() > 0) {
+					int seqNumber = Integer.parseInt(m.group(7));
+					if (m.group(3) != null && m.group(3).length() > 0)
+						sequenceNumberMap.put(seqNumber, m.group(2)+m.group(3));
+					else
+						sequenceNumberMap.put(seqNumber, m.group(2));
+				} else {
+					int residueNumber = Integer.parseInt(m.group(2));
+					if (residueNumber < firstResidue)
+						firstResidue = residueNumber;
 				}
 			}
 		}

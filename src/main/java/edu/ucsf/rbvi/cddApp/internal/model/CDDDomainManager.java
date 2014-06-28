@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
@@ -31,6 +32,7 @@ import org.cytoscape.util.swing.OpenBrowser;
 import org.cytoscape.view.model.CyNetworkView;
 import org.cytoscape.work.TaskMonitor;
 
+import edu.ucsf.rbvi.cddApp.internal.ui.DomainsPanel;
 import edu.ucsf.rbvi.cddApp.internal.util.CyUtils;
 import edu.ucsf.rbvi.cddApp.internal.util.NetUtils;
 
@@ -50,6 +52,7 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 	Map<CyIdentifiable, List<CDDFeature>> featureMap = null;
 	Map<CyIdentifiable, List<PDBStructure>> pdbChainMap = null;
 	private boolean ignoringSelection = false;
+	private DomainsPanel domainsPanel = null;
 
 	public static Font getAwesomeFont() {
 		if (awesomeFont == null) {
@@ -102,6 +105,14 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 		return serviceRegistrar.getService(serviceClass, filter);
 	}
 
+	public void registerService(Object service, Class<?> serviceClass, Properties props) {
+		serviceRegistrar.registerService(service, serviceClass, props);
+	}
+
+	public void unregisterService(Object service, Class<?> serviceClass) {
+		serviceRegistrar.unregisterService(service, serviceClass);
+	}
+
 	public void openURL(String url) {
 		if (url != null || url.length() > 0)
 			openBrowser.openURL(url);
@@ -109,6 +120,14 @@ public class CDDDomainManager implements SetCurrentNetworkListener {
 
 	public StructureHandler getStructureHandler() {
 		return structureHandler;
+	}
+
+	public DomainsPanel getDomainsPanel() {
+		return domainsPanel;
+	}
+
+	public void setDomainsPanel(DomainsPanel domainsPanel) {
+		this.domainsPanel = domainsPanel;
 	}
 
 	// Implement a critical section mechanism for node selections
