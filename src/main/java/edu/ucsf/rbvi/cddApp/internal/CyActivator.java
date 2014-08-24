@@ -34,6 +34,7 @@ import edu.ucsf.rbvi.cddApp.internal.tasks.LoadCDDDomainTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.ShowCDDDomainTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.ShowDomainChartsTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.ShowDomainsPanelTaskFactory;
+import edu.ucsf.rbvi.cddApp.internal.tasks.ShowStructureDiagramTaskFactory;
 import edu.ucsf.rbvi.cddApp.internal.tasks.UnselectCDDDomainTaskFactory;
 
 public class CyActivator extends AbstractCyActivator {
@@ -118,6 +119,14 @@ public class CyActivator extends AbstractCyActivator {
 			hidePanelProps.setProperty(COMMAND_DESCRIPTION, 
 		                          "Hide the CDD Domain Panel");
 			registerService(bc, hidePanel, TaskFactory.class, hidePanelProps);
+
+			ShowStructureDiagramTaskFactory showDiagram = 
+				new ShowStructureDiagramTaskFactory(manager);
+			Properties structureProps = new Properties();
+			structureProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
+			structureProps.setProperty(TITLE, "Show structure diagram");
+			structureProps.setProperty(MENU_GRAVITY, "2.0");
+			registerService(bc, showDiagram, NodeViewTaskFactory.class, structureProps);
 		}
 
 		// Commands

@@ -70,6 +70,16 @@ public class PieChart {
 		}
 	}
 
+	static public String getDomainChart(CyNetwork network, CyIdentifiable cyId) {
+		if (network.getRow(cyId) == null) return null;
+		return network.getRow(cyId).get(DOMAIN_CHART, String.class);
+	}
+
+	static public List<Long> getDomainSizes(CyNetwork network, CyIdentifiable cyId) {
+		if (network.getRow(cyId) == null) return null;
+		return network.getRow(cyId).getList(DOMAIN_SIZE, Long.class);
+	}
+
 	static private void updateDomains(CyNetwork network, CyIdentifiable cyId, List<CDDHit> hitList, 
 	                                  Map<String, String> colorMap, long maxLength) {
 		List<Long> domainSize = new ArrayList<Long>();
