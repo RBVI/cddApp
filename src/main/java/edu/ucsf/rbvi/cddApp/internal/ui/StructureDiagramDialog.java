@@ -31,7 +31,7 @@ public class StructureDiagramDialog extends JDialog implements ActionListener {
 	final CyNetwork net;
 
 	public StructureDiagramDialog(JFrame parent, CyIdentifiable cyId, CDDDomainManager manager) {
-		super(parent, "Structure Diagram for "+CyUtils.getName(manager.getCurrentNetwork(), cyId), false);
+		super(parent, "Domain Architecture for "+CyUtils.getName(manager.getCurrentNetwork(), cyId), false);
 		this.domainManager = manager;
 		this.cyId = cyId;
 		this.net = manager.getCurrentNetwork();

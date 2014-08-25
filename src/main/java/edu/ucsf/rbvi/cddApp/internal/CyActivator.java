@@ -124,7 +124,7 @@ public class CyActivator extends AbstractCyActivator {
 				new ShowStructureDiagramTaskFactory(manager);
 			Properties structureProps = new Properties();
 			structureProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
-			structureProps.setProperty(TITLE, "Show structure diagram");
+			structureProps.setProperty(TITLE, "Show domain architecture diagram");
 			structureProps.setProperty(MENU_GRAVITY, "2.0");
 			registerService(bc, showDiagram, NodeViewTaskFactory.class, structureProps);
 		}
