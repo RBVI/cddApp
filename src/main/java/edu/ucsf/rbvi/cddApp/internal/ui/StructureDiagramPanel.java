@@ -132,13 +132,12 @@ public class StructureDiagramPanel extends JPanel {
 		double ymid = bounds.getY()+bounds.getHeight()/2;
 
 		long start = 0;
-		// For each domain, draw a rectangle
+		// Draw each domain
 		g2d.setStroke(new BasicStroke(0.5f));
 		g2d.setFont(labelFont);
 		for (int domain = 0; domain < sizes.size(); domain++) {
 			long size = sizes.get(domain);
 			Color color = colorList.get(domain);
-			String label = labelList.get(domain);
 			if (!color.equals(Color.lightGray)) {
 				double x = scaleX(startx, scale, start);
 				double width = size*scale;
@@ -147,10 +146,33 @@ public class StructureDiagramPanel extends JPanel {
 				g2d.fill(d);
 				g2d.setColor(Color.BLACK);
 				g2d.draw(d);
+			}
+			start = start+size;
+		}
 
+		// Draw the labels.  We do this in a separate path
+		// to avoid one domain overwriting the label of another
+		start = 0;
+		for (int domain = 0; domain < sizes.size(); domain++) {
+			long size = sizes.get(domain);
+			Color color = colorList.get(domain);
+			if (!color.equals(Color.lightGray)) {
+				/* Convert the color to a contrasting color
+				float[] hsbColor = Color.RGBtoHSB(color.getRed(), color.getGreen(), color.getBlue(), null);
+				hsbColor[0] = hsbColor[0]+0.5f;
+				if (hsbColor[0]>1.0f) hsbColor[0] = hsbColor[0] - 1.0f;
+				color = Color.getHSBColor(hsbColor[0], hsbColor[1], hsbColor[2]);
+				g2d.setColor(color);
+				*/
+				String label = labelList.get(domain);
+				double x = scaleX(startx, scale, start);
+				double width = size*scale;
 				int stringWidth = g2d.getFontMetrics().stringWidth(label);
 				double offset = (width-stringWidth)/2;
-				g2d.drawString(label, (int)(x+offset), (int)(ymid-6));
+				if ((int)(x+offset) < 0)
+					g2d.drawString(label, 1, (int)(ymid-6));
+				else
+					g2d.drawString(label, (int)(x+offset), (int)(ymid-6));
 			}
 			start = start+size;
 		}
