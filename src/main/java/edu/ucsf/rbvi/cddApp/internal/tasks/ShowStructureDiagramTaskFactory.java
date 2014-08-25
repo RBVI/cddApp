@@ -1,5 +1,7 @@
 package edu.ucsf.rbvi.cddApp.internal.tasks;
 
+import javax.swing.JFrame;
+
 import org.cytoscape.model.CyNetwork;
 import org.cytoscape.model.CyNode;
 import org.cytoscape.task.AbstractNodeViewTaskFactory;
@@ -13,9 +15,11 @@ import edu.ucsf.rbvi.cddApp.internal.model.PieChart;
 public class ShowStructureDiagramTaskFactory 
 				extends AbstractNodeViewTaskFactory {
 	final CDDDomainManager domainManager;
+	final JFrame parent;
 
-	public ShowStructureDiagramTaskFactory(CDDDomainManager manager) {
+	public ShowStructureDiagramTaskFactory(CDDDomainManager manager, JFrame parent) {
 		this.domainManager = manager;
+		this.parent = parent;
 	}
 
 	public TaskIterator createTaskIterator(View<CyNode> nodeView,
@@ -23,7 +27,7 @@ public class ShowStructureDiagramTaskFactory
 		return new TaskIterator(
 										new ShowStructureDiagramTask(nodeView, 
 														                     networkView, 
-																								 domainManager));
+																								 domainManager, parent));
 	}
 
 	public boolean isReady(View<CyNode> nodeView,

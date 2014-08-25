@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
@@ -26,6 +27,7 @@ public class ShowStructureDiagramTask extends AbstractNodeViewTask {
 	final CyNetwork network;
 	final CyNode node;
 	final CDDDomainManager domainManager;
+	final JFrame parent;
 
 	/**
 	 * Constructor for loading CDD Domain from the CDD website.
@@ -34,11 +36,12 @@ public class ShowStructureDiagramTask extends AbstractNodeViewTask {
 	 */
 	public ShowStructureDiagramTask(View<CyNode> nodeView,
 									                CyNetworkView netView, 
-																	CDDDomainManager manager) {
+																	CDDDomainManager manager, JFrame parent) {
 		super(nodeView, netView);
 		this.domainManager = manager;
 		network = netView.getModel();
 		node = nodeView.getModel();
+		this.parent = parent;
 	}
 
 	/**
@@ -49,7 +52,7 @@ public class ShowStructureDiagramTask extends AbstractNodeViewTask {
 		monitor.setTitle("Show Structure Diagram for "+
 										 CyUtils.getName(network, node));
 
-		JDialog stDialog = new StructureDiagramDialog(null, node, domainManager);
+		JDialog stDialog = new StructureDiagramDialog(parent, node, domainManager);
 	}
 
 	@ProvidesTitle

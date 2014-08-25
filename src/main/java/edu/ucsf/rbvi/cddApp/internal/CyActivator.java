@@ -50,11 +50,14 @@ public class CyActivator extends AbstractCyActivator {
 
 		// See if we have a graphics console or not
 		boolean haveGUI = true;
+		CySwingApplication cySwingApplication = null;
 		ServiceReference ref = bc.getServiceReference(CySwingApplication.class.getName());
 
 		if (ref == null) {
 			haveGUI = false;
 			// Issue error and return
+		} else {
+			cySwingApplication = getService(bc, CySwingApplication.class);
 		}
 
 		// Get some services we'll need
@@ -121,7 +124,7 @@ public class CyActivator extends AbstractCyActivator {
 			registerService(bc, hidePanel, TaskFactory.class, hidePanelProps);
 
 			ShowStructureDiagramTaskFactory showDiagram = 
-				new ShowStructureDiagramTaskFactory(manager);
+				new ShowStructureDiagramTaskFactory(manager, cySwingApplication.getJFrame());
 			Properties structureProps = new Properties();
 			structureProps.setProperty(PREFERRED_MENU, "Apps.cddApp");
 			structureProps.setProperty(TITLE, "Show domain architecture diagram");
