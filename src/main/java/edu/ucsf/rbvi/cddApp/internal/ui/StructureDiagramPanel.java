@@ -3,6 +3,7 @@ package edu.ucsf.rbvi.cddApp.internal.ui;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -41,6 +42,17 @@ public class StructureDiagramPanel extends JPanel {
 	List<Long> sizes;
 	long length = 0;
 
+	public static final String LABEL_FONT=Font.SANS_SERIF;
+	public static final int LABEL_STYLE=Font.BOLD;
+	public static final int LABEL_SIZE=12;
+
+	public static final String AXIS_FONT=Font.SANS_SERIF;
+	public static final int AXIS_STYLE=Font.PLAIN;
+	public static final int AXIS_SIZE=8;
+
+	public static final Font labelFont = new Font(LABEL_FONT, LABEL_STYLE, LABEL_SIZE);
+	public static final Font axisFont = new Font(AXIS_FONT, AXIS_STYLE, AXIS_SIZE);
+
 	public StructureDiagramPanel(CyNetwork net, CyIdentifiable cyId, CDDDomainManager manager) {
 		super();
 		this.domainManager = manager;
@@ -48,7 +60,7 @@ public class StructureDiagramPanel extends JPanel {
 		this.net = net;
 
 		String chartString = PieChart.getDomainChart(net, cyId);
-		System.out.println("chartString = "+chartString);
+		// System.out.println("chartString = "+chartString);
 
 		// Skip over the chart type
 		chartString = chartString.substring(10);
@@ -122,6 +134,7 @@ public class StructureDiagramPanel extends JPanel {
 		long start = 0;
 		// For each domain, draw a rectangle
 		g2d.setStroke(new BasicStroke(0.5f));
+		g2d.setFont(labelFont);
 		for (int domain = 0; domain < sizes.size(); domain++) {
 			long size = sizes.get(domain);
 			Color color = colorList.get(domain);
@@ -129,7 +142,7 @@ public class StructureDiagramPanel extends JPanel {
 			if (!color.equals(Color.lightGray)) {
 				double x = scaleX(startx, scale, start);
 				double width = size*scale;
-				RoundRectangle2D d = new RoundRectangle2D.Double(x, ymid-20, width, 40, 10, 10);
+				RoundRectangle2D d = new RoundRectangle2D.Double(x, ymid-20, width, 40, 20, 20);
 				g2d.setPaint(color);
 				g2d.fill(d);
 				g2d.setColor(Color.BLACK);
@@ -137,12 +150,13 @@ public class StructureDiagramPanel extends JPanel {
 
 				int stringWidth = g2d.getFontMetrics().stringWidth(label);
 				double offset = (width-stringWidth)/2;
-				g2d.drawString(label, (int)(x+offset), (int)(ymid+19));
+				g2d.drawString(label, (int)(x+offset), (int)(ymid-6));
 			}
 			start = start+size;
 		}
 
 		// Draw the axis
+		g2d.setFont(axisFont);
 		g2d.setStroke(new BasicStroke(1));
 		g2d.setColor(Color.BLACK);
 		g2d.drawLine((int)startx, 
@@ -150,18 +164,29 @@ public class StructureDiagramPanel extends JPanel {
 								 (int)endx,
 								 (int)ymid);
 
+
 		// Draw a tick every 50 bp
-		for (int i = 0; i < length; i=i+50) {
-			double x = scaleX(startx, scale, i);
-			g2d.drawLine((int)x, (int)(ymid+4), (int)x, (int)(ymid-4));
+		g2d.setColor(Color.DARK_GRAY);
+		for (int i = 50; i < length; i=i+50) {
+			drawTick(g2d, i, startx, ymid, scale);
 		}
 
+		g2d.setColor(Color.BLACK);
+		drawTick(g2d, 0, startx, ymid, scale);
+		drawTick(g2d, (int)length, startx, ymid, scale);
 	}
 
 	double scaleX(double start, double scale, long value) {
 		return (value*scale)+start;
 	}
 
-	void drawAxis() {
+	private void drawTick(Graphics2D g2d, int bp, double startx, 
+	                       double ymid, double scale) {
+		double x = scaleX(startx, scale, bp);
+		g2d.drawLine((int)x, (int)(ymid+4), (int)x, (int)(ymid));
+		String label = String.valueOf(bp);
+		int center = g2d.getFontMetrics().stringWidth(label)/2;
+		g2d.drawString(label, (int)(x-center), (int)(ymid+15));
 	}
+
 }

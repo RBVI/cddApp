@@ -2,6 +2,9 @@ package edu.ucsf.rbvi.cddApp.internal.ui;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -21,7 +24,7 @@ import edu.ucsf.rbvi.cddApp.internal.util.CyUtils;
  * @author Allan Wu
  *
  */
-public class StructureDiagramDialog extends JDialog {
+public class StructureDiagramDialog extends JDialog implements ActionListener {
 	
 	final CDDDomainManager domainManager;
 	final CyIdentifiable cyId;
@@ -49,8 +52,15 @@ public class StructureDiagramDialog extends JDialog {
 		buttonBox.setBorder(
 							BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
 		JButton okButton = new JButton("OK");
+		okButton.addActionListener(this);
 		buttonBox.add(okButton, BorderLayout.EAST);
 
 		return buttonBox;
 	}
+
+	public void actionPerformed(ActionEvent e) {
+		setVisible(false);
+		dispose();
+	}
+
 }
