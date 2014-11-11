@@ -159,6 +159,8 @@ public class DomainsPanel extends JPanel
 		c.gridy = gridy;
 		c.weighty = 1.0;
 		topPanel.add(new JPanel(),c);
+		topPanel.revalidate();
+		topPanel.repaint();
 		} catch (Exception e){e.printStackTrace();}
 	}
 
