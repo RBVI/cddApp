@@ -69,7 +69,7 @@ public class StructureDiagramPanel extends JPanel {
 		while (labelList.size() < colorList.size()) {
 			labelList.add("");
 		}
-		sizes = PieChart.getDomainSizes(net, cyId);
+		sizes = new ArrayList(PieChart.getDomainSizes(net, cyId));
 		for (Long size: sizes) length += size;
 
 		// Because the pie charts work in reverse, we need to unwind
