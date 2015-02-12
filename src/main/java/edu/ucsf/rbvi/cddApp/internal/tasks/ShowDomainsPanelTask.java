@@ -12,7 +12,11 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.cytoscape.application.swing.CytoPanel;
 import org.cytoscape.application.swing.CytoPanelComponent;
+import org.cytoscape.application.swing.CytoPanelName;
+import org.cytoscape.application.swing.CytoPanelState;
+import org.cytoscape.application.swing.CySwingApplication;
 import org.cytoscape.command.util.NodeList;
 import org.cytoscape.model.CyIdentifiable;
 import org.cytoscape.model.CyNetwork;
@@ -51,16 +55,23 @@ public class ShowDomainsPanelTask extends AbstractTask {
 	 */
 	@Override
 	public void run(TaskMonitor monitor) throws Exception {
+		CySwingApplication swingApplication = manager.getService(CySwingApplication.class);
+		CytoPanel cytoPanel = swingApplication.getCytoPanel(CytoPanelName.EAST);
+
 		if (show) {
 			DomainsPanel domainsPanel = new DomainsPanel(manager);
 			manager.registerService(domainsPanel, CytoPanelComponent.class, new Properties());
 			manager.registerService(domainsPanel, RowsSetListener.class, new Properties());
 			manager.setDomainsPanel(domainsPanel);
+			if (cytoPanel.getState() == CytoPanelState.HIDE)
+				cytoPanel.setState(CytoPanelState.DOCK);
 		} else {
 			DomainsPanel domainsPanel = manager.getDomainsPanel();
 			if (domainsPanel == null) return;
 			manager.unregisterService(domainsPanel, CytoPanelComponent.class);
 			manager.unregisterService(domainsPanel, RowsSetListener.class);
+			if (cytoPanel.getCytoPanelComponentCount() == 0)
+				cytoPanel.setState(CytoPanelState.HIDE);
 		}
 	}
 
